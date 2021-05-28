@@ -5,8 +5,8 @@
 # Set UDBASE to the location of UD data folder
 # The data should be CoNLL-U format
 # For details, see http://universaldependencies.org/conll18/data.html (CoNLL-18 UD data)
-# export UDBASE=/path/to/UD
-
+#export UDBASE=/path/to/UD
+export UDBASE=/sailhome/vythai/
 # Set NERBASE to the location of NER data folder
 # The data should be BIO format
 # For details, see https://www.aclweb.org/anthology/W03-0419.pdf (CoNLL-03 NER paper)
