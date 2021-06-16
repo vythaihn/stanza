@@ -2,7 +2,11 @@
 import os
 
 def find_spaces(sentence):
-    # TODO: straight quotes " have a begin/end pattern most of the time in VLSP
+    # TODO: there are some sentences where there is only one quote,
+    # and some of them should be attached to the previous word instead
+    # of the next word.  Training should work this way, though
+    odd_quotes = False
+
     spaces = []
     for word_idx, word in enumerate(sentence):
         space = True
@@ -11,6 +15,15 @@ def find_spaces(sentence):
                 space = False
         if word in ('(', '“'):
             space = False
+        if word == '"':
+            if odd_quotes:
+                # already saw one quote.  put this one at the end of the PREVIOUS word
+                # note that we know there must be at least one word already
+                odd_quotes = False
+                spaces[word_idx-1] = False
+            else:
+                odd_quotes = True
+                space = False
         spaces.append(space)
     return spaces
 
@@ -55,7 +68,8 @@ def convert_file(vlsp_include_spaces, input_filename, output_filename, shard, sp
         sentences.append(words)
 
     if split_filename is not None:
-        split_point = int(len(sentences) * 0.85)
+        # even this is a larger dev set than the train set
+        split_point = int(len(sentences) * 0.95)
         write_file(vlsp_include_spaces, output_filename, sentences[:split_point], shard)
         write_file(vlsp_include_spaces, split_filename, sentences[split_point:], split_shard)
     else:
@@ -75,6 +89,6 @@ def convert_vi_vlsp(extern_dir, tokenizer_dir, args):
     output_dev_filename = os.path.join(tokenizer_dir,   "vi_vlsp.dev.gold.conllu")
     output_test_filename = os.path.join(tokenizer_dir,  "vi_vlsp.test.gold.conllu")
 
-    convert_file(args.vlsp_include_spaces, input_test_filename, output_train_filename, "train", output_dev_filename, "dev")
+    convert_file(args.vlsp_include_spaces, input_train_filename, output_train_filename, "train", output_dev_filename, "dev")
     convert_file(args.vlsp_include_spaces, input_test_filename, output_test_filename, "test")
 
