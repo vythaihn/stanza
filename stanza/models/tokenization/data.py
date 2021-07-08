@@ -105,7 +105,7 @@ class DataLoader:
         """ Convert a paragraph to a list of processed sentences. """
         res = []
         funcs = []
-        print("running!!!")
+        
         for feat_func in self.args['feat_funcs']:
             if feat_func == 'end_of_para' or feat_func == 'start_of_para':
                 # skip for position-dependent features
