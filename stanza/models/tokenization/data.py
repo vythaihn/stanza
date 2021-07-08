@@ -10,11 +10,12 @@ import pickle
 from .vocab import Vocab
 from stanza.models.common.trie import Trie
 
-with open('./stanza/models/tokenization/vi-start.dictionary', 'rb') as config_dict_file_start:
-    start_tree = pickle.load(config_dict_file_start)
+#with open('./stanza/models/tokenization/vi-start.dictionary', 'rb') as config_dict_file_start:
+#    start_tree = pickle.load(config_dict_file_start)
 
-with open('./stanza/models/tokenization/vi-end.dictionary', 'rb') as config_dict_file_end:
-    end_tree = pickle.load(config_dict_file_end)
+#with open('./stanza/models/tokenization/vi-end.dictionary', 'rb') as config_dict_file_end:
+#    end_tree = pickle.load(config_dict_file_end)
+
 logger = logging.getLogger('stanza')
 
 def filter_consecutive_whitespaces(para):
@@ -32,12 +33,19 @@ NEWLINE_WHITESPACE_RE = re.compile(r'\n\s*\n')
 NUMERIC_RE = re.compile(r'^([\d]+[,\.]*)+$')
 WHITESPACE_RE = re.compile(r'\s')
 
+def load_dict():
+    with open('./stanza/models/tokenization/vi-start.dictionary', 'rb') as config_dict_file_start:
+        start_tree = pickle.load(config_dict_file_start)
 
+    with open('./stanza/models/tokenization/vi-end.dictionary', 'rb') as config_dict_file_end:
+        end_tree = pickle.load(config_dict_file_end)
+
+    return start_tree, end_tree
 class DataLoader:
     def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False):
         self.args = args
         self.eval = evaluation
-
+        self.start_tree, self.end_tree = load_dict()
         # get input files
         txt_file = input_files['txt']
         label_file = input_files['label']
@@ -103,6 +111,8 @@ class DataLoader:
 
     def para_to_sentences(self, para):
         """ Convert a paragraph to a list of processed sentences. """
+        #start_tree, end_tree = load_dict()
+        
         res = []
         funcs = []
         print("running!!!")
@@ -165,8 +175,8 @@ class DataLoader:
                 if unit.isalpha():
                     cur_syllable = cur_syllable + unit
                 else:
-                    f_s = 1 if start_tree.search(cur_syllable.lower()) else 0
-                    f_e = 1 if end_tree.search(cur_syllable.lower()) else 0
+                    f_s = 1 if self.start_tree.search(cur_syllable.lower()) else 0
+                    f_e = 1 if self.end_tree.search(cur_syllable.lower()) else 0
                     if f_s:
                         for j in range(start_syllable_idx, idx):
                             current[j][2][-2] = 1
@@ -177,8 +187,8 @@ class DataLoader:
                     cur_syllable = ""
             current += [(unit, label, feats)]
             if start_syllable_idx != -1 and i == len(para)-1:
-                f_s = 1 if start_tree.search(cur_syllable.lower()) else 0
-                f_e = 1 if end_tree.search(cur_syllable.lower()) else 0
+                f_s = 1 if self.start_tree.search(cur_syllable.lower()) else 0
+                f_e = 1 if self.end_tree.search(cur_syllable.lower()) else 0
                 if f_s:
                     for j in range(start_syllable_idx, idx+1):
                         current[j][2][-2] = 1
