@@ -258,11 +258,11 @@ def output_predictions(output_file, trainer, data_generator, vocab, mwt_dict, ma
 
 def eval_model(args, trainer, batches, vocab, mwt_dict):
     oov_count, N, all_preds, doc = output_predictions(args['conll_file'], trainer, batches, vocab, mwt_dict, args['max_seqlen'])
-
     all_preds = np.concatenate(all_preds, 0)
     labels = [y[1] for x in batches.data for y in x]
     counter = Counter(zip(all_preds, labels))
 
+    data = [y[0] for x in batches.data for y in x]
     def f1(pred, gold, mapping):
         pred = [mapping[p] for p in pred]
         gold = [mapping[g] for g in gold]
@@ -286,7 +286,7 @@ def eval_model(args, trainer, batches, vocab, mwt_dict):
             elif g > 0:
                 lastg = i
                 fn += 1
-
+            #check false negative and false positive cases
         if tp == 0:
             return 0
         else:

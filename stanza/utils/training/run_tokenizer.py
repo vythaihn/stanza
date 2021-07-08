@@ -27,6 +27,8 @@ from stanza.utils.avg_sent_len import avg_sent_len
 from stanza.utils.training import common
 from stanza.utils.training.common import Mode
 
+from stanza.models.common.trie import Trie
+
 logger = logging.getLogger('stanza')
 
 def run_treebank(mode, paths, treebank, short_name,
