@@ -155,36 +155,52 @@ class DataLoader:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+2) ])) else 0
                 feats.append(f)
                 #print("hello!")
+            else:
+                feats.append(0)
             if (i+3)<=length:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+3) ])) else 0
                 feats.append(f)
+            else:
+                feats.append(0)
             if (i+4)<=length:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+4) ])) else 0
                 feats.append(f)
-            
+            else:
+                feats.append(0)
+
+
             if (i+5)<=length:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+5) ])) else 0
                 feats.append(f)
+            else:
+                feats.append(0)
 
             if (i+6)<=length:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+6) ])) else 0
                 feats.append(f)
-            
+            else:
+                feats.append(0)            
             if (i+7)<=length:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+7) ])) else 0
                 feats.append(f)
+            else:
+                feats.append(0)
 
             if (i+8)<=length:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+8) ])) else 0
                 feats.append(f)
+            else:
+                feats.append(0)
             if (i+9)<=length:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+9) ])) else 0
                 feats.append(f)
-                
+            else:
+                feats.append(0)
             if (i+10)<=length:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+10) ])) else 0
                 feats.append(f)
-                
+            else:
+                feats.append(0)
             current += [(unit, label, feats)]
         
             if label1 == 2 or label1 == 4: # end of sentence
