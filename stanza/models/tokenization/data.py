@@ -32,7 +32,7 @@ NEWLINE_WHITESPACE_RE = re.compile(r'\n\s*\n')
 NUMERIC_RE = re.compile(r'^([\d]+[,\.]*)+$')
 WHITESPACE_RE = re.compile(r'\s')
 def load_dict():
-    with open('./stanza/models/tokenization/zhsimp_train.dict', 'rb') as config_dict_file_start:
+    with open('./stanza/models/common/zhsimp_train.dict', 'rb') as config_dict_file_start:
         dict_tree = pickle.load(config_dict_file_start)
     return dict_tree
 class DataLoader:
