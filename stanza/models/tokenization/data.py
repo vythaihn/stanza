@@ -150,7 +150,7 @@ class DataLoader:
             if use_start_of_para:
                 f = 1 if i == 0 else 0
                 feats.append(f)
-                
+            
             if (i+2)<=length:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+2) ])) else 0
                 feats.append(f)
@@ -201,6 +201,7 @@ class DataLoader:
                 feats.append(f)
             else:
                 feats.append(0)
+            
             current += [(unit, label, feats)]
         
             if label1 == 2 or label1 == 4: # end of sentence
