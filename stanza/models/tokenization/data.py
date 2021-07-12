@@ -8,7 +8,7 @@ import re
 import torch
 import pickle
 from .vocab import Vocab
-from stanza.models.common.trie import Trie
+from .trie import Trie
 
 with open('./stanza/models/tokenization/zhsimp_train.dict', 'rb') as config_dict_file_start:
     dict_tree = pickle.load(config_dict_file_start)
