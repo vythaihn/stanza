@@ -10,11 +10,11 @@ import pickle
 from .vocab import Vocab
 from stanza.models.common.trie import Trie
 
-with open('./stanza/models/tokenization/vi-start.dictionary', 'rb') as config_dict_file_start:
-    start_tree = pickle.load(config_dict_file_start)
+with open('./stanza/models/tokenization/zh-start.dictionary', 'rb') as config_dict_file_start:
+    start_dict = pickle.load(config_dict_file_start)
 
-with open('./stanza/models/tokenization/vi-end.dictionary', 'rb') as config_dict_file_end:
-    end_tree = pickle.load(config_dict_file_end)
+with open('./stanza/models/tokenization/zh-end.dictionary', 'rb') as config_dict_file_end:
+    end_dict = pickle.load(config_dict_file_end)
 logger = logging.getLogger('stanza')
 
 def filter_consecutive_whitespaces(para):
@@ -118,6 +118,10 @@ class DataLoader:
                 func = lambda x: 1 if x.isupper() else 0
             elif feat_func == 'numeric':
                 func = lambda x: 1 if (NUMERIC_RE.match(x) is not None) else 0
+            elif feat_func == 'start_syllable':
+                func = lambda x: 1 if x in start_dict else 0
+            elif feat_func == 'end_syllable':
+                func = lambda x: 1 if x in end_dict else 0
             else:
                 raise Exception('Feature function "{}" is undefined.'.format(feat_func))
 
@@ -139,7 +143,6 @@ class DataLoader:
         idx = -1
         
         for i, (unit, label) in enumerate(para):
-            idx += 1
             label1 = label if not self.eval else 0
             feats = composite_func(unit)
             # position-dependent features
@@ -149,57 +152,19 @@ class DataLoader:
             if use_start_of_para:
                 f = 1 if i == 0 else 0
                 feats.append(f)
-            feats.append(0)
-            feats.append(0)
-            if previous_space:
-                if unit.isalpha():
-                    start_syllable_idx = idx
-                    previous_space = False
-            else:
-                if feats[0]:
-                    previous_space = True
-                else:
-                    previous_space = False
-                    
-            if start_syllable_idx != -1:
-                if unit.isalpha():
-                    cur_syllable = cur_syllable + unit
-                else:
-                    f_s = 1 if start_tree.search(cur_syllable.lower()) else 0
-                    f_e = 1 if end_tree.search(cur_syllable.lower()) else 0
-                    if f_s:
-                        for j in range(start_syllable_idx, idx):
-                            current[j][2][-2] = 1
-                    if f_e:
-                        for j in range(start_syllable_idx, idx):
-                            current[j][2][-1] = 1
-                    start_syllable_idx = -1
-                    cur_syllable = ""
             current += [(unit, label, feats)]
-            if start_syllable_idx != -1 and i == len(para)-1:
-                f_s = 1 if start_tree.search(cur_syllable.lower()) else 0
-                f_e = 1 if end_tree.search(cur_syllable.lower()) else 0
-                if f_s:
-                    for j in range(start_syllable_idx, idx+1):
-                        current[j][2][-2] = 1
-                if f_e:
-                    for j in range(start_syllable_idx, idx+1):
-                        current[j][2][-1] = 1
-                start_syllable_idx = -1
-                cur_syllable = ""
-                
+        
             if label1 == 2 or label1 == 4: # end of sentence
                 if len(current) <= self.args['max_seqlen']:
                     # get rid of sentences that are too long during training of the tokenizer
                     res.append(process_sentence(current))
                 print(current)
                 current = []
-                idx = -1
-
+                
         if len(current) > 0:
             if self.eval or len(current) <= self.args['max_seqlen']:
                 res.append(process_sentence(current))
-
+    
         return res
 
     def __len__(self):

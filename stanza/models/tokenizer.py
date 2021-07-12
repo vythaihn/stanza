@@ -90,8 +90,8 @@ def main(args=None):
     args = vars(args)
     logger.info("Running tokenizer in {} mode".format(args['mode']))
 
-    args['feat_funcs'] = ['space_before', 'capitalized', 'all_caps', 'numeric']
-    args['feat_dim'] = len(args['feat_funcs'])+2
+    args['feat_funcs'] = ['space_before', 'capitalized', 'all_caps', 'numeric','start_syllable', 'end_syllable']
+    args['feat_dim'] = len(args['feat_funcs'])
     save_name = args['save_name'] if args['save_name'] else '{}_tokenizer.pt'.format(args['shorthand'])
     args['save_name'] = os.path.join(args['save_dir'], save_name)
     utils.ensure_dir(args['save_dir'])
