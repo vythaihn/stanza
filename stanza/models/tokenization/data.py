@@ -10,8 +10,8 @@ import pickle
 from .vocab import Vocab
 from stanza.models.common.trie import Trie
 
-with open('./stanza/models/common/zhsimp_train.dict', 'rb') as config_dict_file_start:
-    dict_tree = pickle.load(config_dict_file_start)
+#with open('./stanza/models/common/zhsimp_train.dict', 'rb') as config_dict_file_start:
+#    dict_tree = pickle.load(config_dict_file_start)
 
 #with open('./stanza/models/tokenization/zh-end.dictionary', 'rb') as config_dict_file_end:
 #    end_dict = pickle.load(config_dict_file_end)
@@ -31,13 +31,15 @@ def filter_consecutive_whitespaces(para):
 NEWLINE_WHITESPACE_RE = re.compile(r'\n\s*\n')
 NUMERIC_RE = re.compile(r'^([\d]+[,\.]*)+$')
 WHITESPACE_RE = re.compile(r'\s')
-
+def load_dict():
+    with open('./stanza/models/tokenization/zhsimp_train.dict', 'rb') as config_dict_file_start:
+        dict_tree = pickle.load(config_dict_file_start)
 
 class DataLoader:
     def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False):
         self.args = args
         self.eval = evaluation
-
+        self.dict_tree = load_dict()
         # get input files
         txt_file = input_files['txt']
         label_file = input_files['label']
