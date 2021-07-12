@@ -34,7 +34,7 @@ WHITESPACE_RE = re.compile(r'\s')
 def load_dict():
     with open('./stanza/models/tokenization/zhsimp_train.dict', 'rb') as config_dict_file_start:
         dict_tree = pickle.load(config_dict_file_start)
-
+    return dict_tree
 class DataLoader:
     def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False):
         self.args = args
