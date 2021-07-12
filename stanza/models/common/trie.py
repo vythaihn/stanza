@@ -59,13 +59,14 @@ def main():
         tree_2.insert(syl)
 
     """
+    """
     data_file = open("./zh_gsdsimp-ud-train.conllu", "r", encoding="utf-8")
     for tokenlist in parse_incr(data_file):
         for token in tokenlist:
             word = token.__str__()
             if len(word)>1 and len(word) < 10:
                 tree.insert(word)
-                
+    """            
     second_data = open("./ZHDict.txt", "r", encoding="utf-8")
     lines = second_data.readlines()
     for line in lines:
