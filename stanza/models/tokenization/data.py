@@ -10,11 +10,11 @@ import pickle
 from .vocab import Vocab
 from stanza.models.common.trie import Trie
 
-with open('./stanza/models/tokenization/zh-start.dictionary', 'rb') as config_dict_file_start:
-    start_dict = pickle.load(config_dict_file_start)
+with open('./stanza/models/tokenization/zhsimp_train.dict', 'rb') as config_dict_file_start:
+    dict_tree = pickle.load(config_dict_file_start)
 
-with open('./stanza/models/tokenization/zh-end.dictionary', 'rb') as config_dict_file_end:
-    end_dict = pickle.load(config_dict_file_end)
+#with open('./stanza/models/tokenization/zh-end.dictionary', 'rb') as config_dict_file_end:
+#    end_dict = pickle.load(config_dict_file_end)
 logger = logging.getLogger('stanza')
 
 def filter_consecutive_whitespaces(para):
@@ -118,10 +118,6 @@ class DataLoader:
                 func = lambda x: 1 if x.isupper() else 0
             elif feat_func == 'numeric':
                 func = lambda x: 1 if (NUMERIC_RE.match(x) is not None) else 0
-            elif feat_func == 'start_syllable':
-                func = lambda x: 1 if x in start_dict else 0
-            elif feat_func == 'end_syllable':
-                func = lambda x: 1 if x in end_dict else 0
             else:
                 raise Exception('Feature function "{}" is undefined.'.format(feat_func))
 
@@ -140,7 +136,7 @@ class DataLoader:
         previous_space = True
         start_syllable_idx = -1
         cur_syllable = ""
-        idx = -1
+        length = len(para)
         
         for i, (unit, label) in enumerate(para):
             label1 = label if not self.eval else 0
@@ -152,6 +148,41 @@ class DataLoader:
             if use_start_of_para:
                 f = 1 if i == 0 else 0
                 feats.append(f)
+                
+            if (i+2)<=length:
+                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+2) ])) else 0
+                feats.append(f)
+                
+            if (i+3)<=length:
+                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+3) ])) else 0
+                feats.append(f)
+            if (i+4)<=length:
+                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+4) ])) else 0
+                feats.append(f)
+            
+            if (i+5)<=length:
+                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+5) ])) else 0
+                feats.append(f)
+
+            if (i+6)<=length:
+                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+6) ])) else 0
+                feats.append(f)
+            
+            if (i+7)<=length:
+                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+7) ])) else 0
+                feats.append(f)
+
+            if (i+8)<=length:
+                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+8) ])) else 0
+                feats.append(f)
+            if (i+9)<=length:
+                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+9) ])) else 0
+                feats.append(f)
+                
+            if (i+10)<=length:
+                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+10) ])) else 0
+                feats.append(f)
+                
             current += [(unit, label, feats)]
         
             if label1 == 2 or label1 == 4: # end of sentence
