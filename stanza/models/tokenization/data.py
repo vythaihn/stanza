@@ -152,7 +152,7 @@ class DataLoader:
             if (i+2)<=length:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+2) ])) else 0
                 feats.append(f)
-                
+                print("hello!")
             if (i+3)<=length:
                 f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+3) ])) else 0
                 feats.append(f)
@@ -195,7 +195,8 @@ class DataLoader:
         if len(current) > 0:
             if self.eval or len(current) <= self.args['max_seqlen']:
                 res.append(process_sentence(current))
-    
+
+        print("Hello worls!!!!")
         return res
 
     def __len__(self):
