@@ -66,7 +66,14 @@ def main():
             if len(word)>1 and len(word) < 10:
                 tree.insert(word)
                 
-
+    second_data = open("./ZHDict.txt", "r", encoding="utf-8")
+    lines = second_data.readlines()
+    for line in lines:
+        word = line.replace(" ","")
+        if len(word)>1 and len(word)<10:
+            tree.insert(word)
+    
+                
     with open('zhsimp_train.dict', 'wb') as config_dictionary_file:
         pickle.dump(tree, config_dictionary_file)
     #with open('vi-start.dictionary', 'wb') as config_dictionary_file_2:
