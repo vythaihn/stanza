@@ -1,6 +1,6 @@
 from collections import defaultdict
 import pickle
-
+from conllu import parse_incr
 class Trie:
     """
     Implement a trie with insert, search, and startsWith methods.
@@ -43,8 +43,9 @@ class Trie:
         return True
 
 def main():
-    tree_1 = Trie()
-    tree_2 = Trie()
+    tree = Trie()
+    #tree_2 = Trie()
+    """
     f = open("dict.txt", "r")
     lines = f.readlines()
 
@@ -57,13 +58,22 @@ def main():
     for syl in end_syllable:
         tree_2.insert(syl)
 
-    with open('vi-end.dictionary', 'wb') as config_dictionary_file:
-        pickle.dump(tree_2, config_dictionary_file)
-    with open('vi-start.dictionary', 'wb') as config_dictionary_file_2:
-        pickle.dump(tree_1, config_dictionary_file_2)
+    """
+    data_file = open("./zh_gsdsimp-ud-train.conllu", "r", encoding="utf-8")
+    for tokenlist in parse_incr(data_file):
+        for token in tokenlist:
+            word = token.__str__()
+            if len(word)>1 and len(word) < 10:
+                tree.insert(word)
+                
+
+    with open('zhsimp_train.dict', 'wb') as config_dictionary_file:
+        pickle.dump(tree, config_dictionary_file)
+    #with open('vi-start.dictionary', 'wb') as config_dictionary_file_2:
+    #    pickle.dump(tree_1, config_dictionary_file_2)
 
     config_dictionary_file.close()
-    config_dictionary_file_2.close()
+    #config_dictionary_file_2.close()
     print("Succesfully generated dict files!")
     
 if __name__=='__main__':
