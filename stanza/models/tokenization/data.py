@@ -354,5 +354,8 @@ class DataLoader:
         labels = torch.from_numpy(labels)
         features = torch.from_numpy(features)
 
+        print(units.size())
+        print(labels.size())
+        print(features.size())
         return units, labels, features, raw_units
 
