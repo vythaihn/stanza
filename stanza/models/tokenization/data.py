@@ -45,7 +45,7 @@ class DataLoader:
         label_file = input_files['label']
 
         # Load data and process it
-assert(mask != mask_feat)        if input_data is not None:
+        if input_data is not None:
             self.data = input_data
         else:
             # set up text from file or input string
@@ -357,6 +357,7 @@ assert(mask != mask_feat)        if input_data is not None:
                 for j in range(len(raw_units[i])):
                     if mask_feat[i,j]:
                         features[i,j,4:13] = 0
+
         comparison = (mask == mask_feat).all()
         assert not comparison
         
