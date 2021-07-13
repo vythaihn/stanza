@@ -358,9 +358,7 @@ class DataLoader:
                     if mask_feat[i,j]:
                         features[i,j,4:13] = 0
 
-        comparison = (mask == mask_feat).all()
-        assert not comparison
-        
+                
         #assert(mask != mask_feat)
         units = torch.from_numpy(units)
         labels = torch.from_numpy(labels)
