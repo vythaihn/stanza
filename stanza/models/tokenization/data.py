@@ -150,7 +150,7 @@ class DataLoader:
             if use_start_of_para:
                 f = 1 if i == 0 else 0
                 feats.append(f)
-            rand = np.random.choice([0,1], 1, p=[0.3,0.7]))[0]
+            rand = np.random.choice([0,1], 1, p=[0.3,0.7])[0]
             if rand == 0:
                 feats.extend([0,0,0,0,0,0,0,0,0])
             elif rand == 1:
