@@ -49,7 +49,7 @@ def main():
     f = open("dict.txt", "r")
     lines = f.readlines()
 
-
+    
     start_syllable = set([word.split()[0] for word in lines])
     for syl in start_syllable:
         tree_1.insert(syl)
@@ -59,20 +59,27 @@ def main():
         tree_2.insert(syl)
 
     """
-    """
+    count = 0 
     data_file = open("./zh_gsdsimp-ud-train.conllu", "r", encoding="utf-8")
     for tokenlist in parse_incr(data_file):
         for token in tokenlist:
-            word = token.__str__()
+            #word = token.__str__()
+            word = token['form']
+            
             if len(word)>1 and len(word) < 10:
-                tree.insert(word)
-    """            
+                if not any(map(str.isdigit, word)):
+                    tree.insert(word)
+                    count+=1
+            
+
+    print(count)
     second_data = open("./ZHDict.txt", "r", encoding="utf-8")
     lines = second_data.readlines()
     for line in lines:
         word = line.replace(" ","")
         if len(word)>1 and len(word)<10:
-            tree.insert(word)
+            if not any(map(str.isdigit, word)):
+                tree.insert(word)
     
                 
     with open('zhsimp_train.dict', 'wb') as config_dictionary_file:

@@ -150,60 +150,63 @@ class DataLoader:
             if use_start_of_para:
                 f = 1 if i == 0 else 0
                 feats.append(f)
-            
-            if (i+2)<=length:
-                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+2) ])) else 0
-                feats.append(f)
+            rand = np.random.choice([0,1], 1, p=[0.3,0.7]))[0]
+            if rand == 0:
+                feats.extend([0,0,0,0,0,0,0,0,0])
+            elif rand == 1:
+                if (i+2)<=length:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+2) ])) else 0
+                    feats.append(f)
                 #print("hello!")
-            else:
-                feats.append(0)
-            if (i+3)<=length:
-                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+3) ])) else 0
-                feats.append(f)
-            else:
-                feats.append(0)
-            if (i+4)<=length:
-                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+4) ])) else 0
-                feats.append(f)
-            else:
-                feats.append(0)
+                else:
+                    feats.append(0)
+                if (i+3)<=length:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+3) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+                if (i+4)<=length:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+4) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
 
 
-            if (i+5)<=length:
-                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+5) ])) else 0
-                feats.append(f)
-            else:
-                feats.append(0)
+                if (i+5)<=length:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+5) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
 
-            if (i+6)<=length:
-                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+6) ])) else 0
-                feats.append(f)
-            else:
-                feats.append(0)            
-            if (i+7)<=length:
-                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+7) ])) else 0
-                feats.append(f)
-            else:
-                feats.append(0)
+                if (i+6)<=length:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+6) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)            
+                if (i+7)<=length:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+7) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
 
-            if (i+8)<=length:
-                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+8) ])) else 0
-                feats.append(f)
-            else:
-                feats.append(0)
-            if (i+9)<=length:
-                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+9) ])) else 0
-                feats.append(f)
-            else:
-                feats.append(0)
-            if (i+10)<=length:
-                f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+10) ])) else 0
-                feats.append(f)
-            else:
-                feats.append(0)
-            
+                if (i+8)<=length:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+8) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+                if (i+9)<=length:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+9) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+                if (i+10)<=length:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+10) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+            """
             current += [(unit, label, feats)]
-        
+            #print(current)
             if label1 == 2 or label1 == 4: # end of sentence
                 if len(current) <= self.args['max_seqlen']:
                     # get rid of sentences that are too long during training of the tokenizer
