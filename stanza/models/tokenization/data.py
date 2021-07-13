@@ -352,10 +352,10 @@ class DataLoader:
 
         if feat_dropout > 0 and not self.eval:
             mask_feat = np.random.random_sample(units.shape) < feat_dropout
-            mask_feat[uunits == padid] = 0
+            mask_feat[units == padid] = 0
             for i in range(len(raw_units)):
                 for j in range(len(raw_units[i])):
-                    if mask[i,j]:
+                    if mask_feat[i,j]:
                         features[i,j,4:13] = 0
         assert(mask != mask_feat)
         units = torch.from_numpy(units)
