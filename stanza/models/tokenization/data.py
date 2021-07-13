@@ -150,7 +150,7 @@ class DataLoader:
             if use_start_of_para:
                 f = 1 if i == 0 else 0
                 feats.append(f)
-            rand = np.random.choice([0,1], 1, p=[0.3,0.7])[0]
+            rand = 1
             if rand == 0:
                 feats.extend([0,0,0,0,0,0,0,0,0])
             elif rand == 1:
@@ -229,7 +229,7 @@ class DataLoader:
             random.shuffle(para)
         self.init_sent_ids()
 
-    def next(self, eval_offsets=None, unit_dropout=0.0, old_batch=None):
+    def next(self, eval_offsets=None, unit_dropout=0.0, old_batch=None, feat_dropout=0.0):
         ''' Get a batch of converted and padded PyTorch data from preprocessed raw text for training/prediction. '''
         feat_size = len(self.sentences[0][0][2][0])
         unkid = self.vocab.unit2id('<UNK>')
@@ -350,12 +350,17 @@ class DataLoader:
                     if mask[i, j]:
                         raw_units[i][j] = '<UNK>'
 
+        if feat_dropout > 0 and not self.eval:
+            mask_feat = np.random.random_sample(units.shape) < feat_dropout
+            mask_feat[uunits == padid] = 0
+            for i in range(len(raw_units)):
+                for j in range(len(raw_units[i])):
+                    if mask[i,j]:
+                        features[i,j,4:13] = 0
+        assert(mask != mask_feat)
         units = torch.from_numpy(units)
         labels = torch.from_numpy(labels)
         features = torch.from_numpy(features)
 
-        print(units.size())
-        print(labels.size())
-        print(features.size())
         return units, labels, features, raw_units
 

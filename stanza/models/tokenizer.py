@@ -56,6 +56,7 @@ def parse_args(args=None):
     parser.add_argument('--lr0', type=float, default=2e-3, help="Initial learning rate")
     parser.add_argument('--dropout', type=float, default=0.33, help="Dropout probability")
     parser.add_argument('--unit_dropout', type=float, default=0.33, help="Unit dropout probability")
+    parser.add_argument('--feat_dropout', type=float, default=0.33, help="Features dropout probability")
     parser.add_argument('--tok_noise', type=float, default=0.02, help="Probability to induce noise to the input of the higher RNN")
     parser.add_argument('--sent_drop_prob', type=float, default=0.2, help="Probability to drop sentences at the end of batches during training uniformly at random.  Idea is to fake paragraph endings.")
     parser.add_argument('--weight_decay', type=float, default=0.0, help="Weight decay")
@@ -138,7 +139,7 @@ def train(args):
     best_dev_step = -1
 
     for step in range(1, steps+1):
-        batch = train_batches.next(unit_dropout=args['unit_dropout'])
+        batch = train_batches.next(unit_dropout=args['unit_dropout'], feat_dropout = args['feat_dropout'])
 
         loss = trainer.update(batch)
         if step % args['report_steps'] == 0:
