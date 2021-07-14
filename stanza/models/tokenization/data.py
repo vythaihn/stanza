@@ -401,7 +401,7 @@ class DataLoader:
             for i in range(len(raw_units)):
                 for j in range(len(raw_units[i])):
                     if mask_feat[i,j]:
-                        features[i,j,4:13] = 0
+                        features[i,j,4:] = 0
 
                 
         #assert(mask != mask_feat)
