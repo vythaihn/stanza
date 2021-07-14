@@ -10,11 +10,6 @@ import pickle
 from .vocab import Vocab
 from stanza.models.common.trie import Trie
 
-#with open('./stanza/models/common/zhsimp_train.dict', 'rb') as config_dict_file_start:
-#    dict_tree = pickle.load(config_dict_file_start)
-
-#with open('./stanza/models/tokenization/zh-end.dictionary', 'rb') as config_dict_file_end:
-#    end_dict = pickle.load(config_dict_file_end)
 logger = logging.getLogger('stanza')
 
 def filter_consecutive_whitespaces(para):
@@ -125,6 +120,17 @@ class DataLoader:
 
             funcs.append(func)
 
+        length = len(para)
+
+        if self.args['dict_feat'] != 0:
+            for t in range(2, self.args['dict_feat']+1):
+                func = lambda i: 0 if (i+t) > length else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+2) ]).lower()) else 0)
+                funcs.append(func)
+            for t in range(1, self.args['dict_feat']):
+                func = lambda i: 0 if (i-t) < 0 else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+2) ]).lower()) else 0)
+                funcs.append(func)
+
+
         # stacking all featurize functions
         composite_func = lambda x: [f(x) for f in funcs]
 
@@ -150,6 +156,7 @@ class DataLoader:
             if use_start_of_para:
                 f = 1 if i == 0 else 0
                 feats.append(f)
+            """
             rand = 1
             if rand == 0:
                 feats.extend([0,0,0,0,0,0,0,0,0])
@@ -250,6 +257,7 @@ class DataLoader:
                     feats.append(f)
                 else:
                     feats.append(0)
+            """
             current += [(unit, label, feats)]
             #print(current)
             if label1 == 2 or label1 == 4: # end of sentence
@@ -395,7 +403,7 @@ class DataLoader:
                     if mask[i, j]:
                         raw_units[i][j] = '<UNK>'
 
-        if feat_dropout > 0 and not self.eval:
+        if self.args['dict_feat'] != 0 and feat_dropout > 0 and not self.eval:
             mask_feat = np.random.random_sample(units.shape) < feat_dropout
             mask_feat[units == padid] = 0
             for i in range(len(raw_units)):

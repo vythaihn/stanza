@@ -49,6 +49,7 @@ def parse_args(args=None):
     parser.add_argument('--input_dropout', action='store_true', help="Dropout input embeddings as well")
     parser.add_argument('--conv_res', type=str, default=None, help="Convolutional residual layers for the RNN")
     parser.add_argument('--rnn_layers', type=int, default=1, help="Layers of RNN in the tokenizer")
+    parser.add_argument('--dict_feat', type=int, default=0, help="Number of dictionary features, usually the length of longest word in a dict")
 
     parser.add_argument('--max_grad_norm', type=float, default=1.0, help="Maximum gradient norm to clip to")
     parser.add_argument('--anneal', type=float, default=.999, help="Anneal the learning rate by this amount when dev performance deteriorate")
@@ -92,7 +93,7 @@ def main(args=None):
     logger.info("Running tokenizer in {} mode".format(args['mode']))
 
     args['feat_funcs'] = ['space_before', 'capitalized', 'all_caps', 'numeric']
-    args['feat_dim'] = len(args['feat_funcs']) + 18
+    args['feat_dim'] = len(args['feat_funcs']) + (args['dict_feat']-1)*2
     save_name = args['save_name'] if args['save_name'] else '{}_tokenizer.pt'.format(args['shorthand'])
     args['save_name'] = os.path.join(args['save_dir'], save_name)
     utils.ensure_dir(args['save_dir'])
