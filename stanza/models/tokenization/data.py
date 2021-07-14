@@ -124,10 +124,10 @@ class DataLoader:
 
         if self.args['dict_feat'] != 0:
             for t in range(2, self.args['dict_feat']+1):
-                func = lambda i: 0 if (i+t) > length else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+2) ]).lower()) else 0)
+                func = lambda i: 0 if (i+t) > length else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+t) ]).lower()) else 0)
                 funcs.append(func)
             for t in range(1, self.args['dict_feat']):
-                func = lambda i: 0 if (i-t) < 0 else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+2) ]).lower()) else 0)
+                func = lambda i: 0 if (i-t) < 0 else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-t,i+1) ]).lower()) else 0)
                 funcs.append(func)
 
 
