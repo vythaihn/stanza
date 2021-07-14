@@ -204,7 +204,52 @@ class DataLoader:
                     feats.append(f)
                 else:
                     feats.append(0)
-            
+
+                if (i-1)>=0:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-1,i+1) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+                if (i-2)>=0:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-2,i+1) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+                if (i-3)>=0:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-3,i+1) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+                if (i-4)>=0:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-4,i+1) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+                if (i-5)>=0:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-5,i+1) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+                if (i-6)>=0:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-6,i+1) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+                if (i-7)>=0:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-7,i+1) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+                if (i-8)>=0:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-8,i+1) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
+                if (i-9)>=0:
+                    f = 1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-9,i+1) ])) else 0
+                    feats.append(f)
+                else:
+                    feats.append(0)
             current += [(unit, label, feats)]
             #print(current)
             if label1 == 2 or label1 == 4: # end of sentence
