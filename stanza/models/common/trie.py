@@ -60,13 +60,14 @@ def main():
 
     """
     count = 0 
-    data_file = open("./zh_gsdsimp-ud-train.conllu", "r", encoding="utf-8")
+    data_file = open("./vi_vlsp.train.gold.conllu", "r", encoding="utf-8")
     
     for tokenlist in parse_incr(data_file):
         for token in tokenlist:
             #word = token.__str__()
             word = token['form']
             #print(word)
+            word = word.lower()
             if len(word)>1 and len(word) < 10:
                 if not any(map(str.isdigit, word)):
                     tree.insert(word)
@@ -74,18 +75,18 @@ def main():
             
 
     print(count)
-    second_data = open("./ZHDict.txt", "r", encoding="utf-8")
+    second_data = open("./VNDict.txt", "r", encoding="utf-8")
     lines = second_data.readlines()
     for line in lines:
         word = line.replace("\n","")
-        word = word.replace(" ","")
+        #word = word.replace(" ","")
         #print(word)
         if len(word)>1 and len(word)<10:
             if not any(map(str.isdigit, word)):
                 tree.insert(word)
     
                 
-    with open('zhsimp_train.dict', 'wb') as config_dictionary_file:
+    with open('vi_train.dict', 'wb') as config_dictionary_file:
         pickle.dump(tree, config_dictionary_file)
     #with open('vi-start.dictionary', 'wb') as config_dictionary_file_2:
     #    pickle.dump(tree_1, config_dictionary_file_2)
