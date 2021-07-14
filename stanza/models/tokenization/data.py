@@ -121,18 +121,20 @@ class DataLoader:
             funcs.append(func)
 
         length = len(para)
-
+        dict_funcs = []
         if self.args['dict_feat'] != 0:
             for t in range(2, self.args['dict_feat']+1):
                 func = lambda i: 0 if (i+t) > length else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+t) ]).lower()) else 0)
-                funcs.append(func)
+                dict_funcs.append(func)
             for t in range(1, self.args['dict_feat']):
                 func = lambda i: 0 if (i-t) < 0 else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-t,i+1) ]).lower()) else 0)
-                funcs.append(func)
+                dict_funcs.append(func)
 
 
         # stacking all featurize functions
         composite_func = lambda x: [f(x) for f in funcs]
+        dictionary_func = lambda x: [f(x) for f in dict_funcs]
+
 
         def process_sentence(sent):
             return [self.vocab.unit2id(y[0]) for y in sent], [y[1] for y in sent], [y[2] for y in sent], [y[0] for y in sent]
@@ -149,6 +151,8 @@ class DataLoader:
         for i, (unit, label) in enumerate(para):
             label1 = label if not self.eval else 0
             feats = composite_func(unit)
+            feats = feats.extend(dictionary_func(i))
+
             # position-dependent features
             if use_end_of_para:
                 f = 1 if i == len(para)-1 else 0
