@@ -61,11 +61,12 @@ def main():
     """
     count = 0 
     data_file = open("./zh_gsdsimp-ud-train.conllu", "r", encoding="utf-8")
+    
     for tokenlist in parse_incr(data_file):
         for token in tokenlist:
             #word = token.__str__()
             word = token['form']
-            
+            #print(word)
             if len(word)>1 and len(word) < 10:
                 if not any(map(str.isdigit, word)):
                     tree.insert(word)
@@ -76,7 +77,9 @@ def main():
     second_data = open("./ZHDict.txt", "r", encoding="utf-8")
     lines = second_data.readlines()
     for line in lines:
-        word = line.replace(" ","")
+        word = line.replace("\n","")
+        word = word.replace(" ","")
+        #print(word)
         if len(word)>1 and len(word)<10:
             if not any(map(str.isdigit, word)):
                 tree.insert(word)
