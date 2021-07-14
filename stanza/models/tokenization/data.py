@@ -151,7 +151,8 @@ class DataLoader:
             label1 = label if not self.eval else 0
             feats = composite_func(unit)
             if self.args['dict_feat'] != 0:
-                feats = feats.extend(dictionary_func(i))
+                dict_feats = dictionary_func(i)
+                feats = feats + dict_feats
 
             # position-dependent features
             if use_end_of_para:
