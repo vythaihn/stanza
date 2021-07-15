@@ -128,20 +128,20 @@ class DataLoader:
             dict_backward_feats = [0 for i in range(self.args['dict_feat']-1)]
             #check forward words formed from [i,i+1] and [i,i+2], etc found in dict
             for t in range(2, self.args['dict_feat']+1):
-                word = ''.join([para[j][0] for j in range(i,i+t) ]).lower()
-                #check if the word is in dictionary
-                feat = 0 if (i+t) > length else (1 if self.dict_tree.search(word) else 2)
-                #add feat if found
-                if feat == 1:
-                    dict_forward_feats[t-2] = 1
-                #else check if that word is prefix or not, if not then exit the for loop
-                elif feat == 2:
-                    if not self.dict_tree.startsWith(word):
-                        break
+                if (i + t) <= length:
+                    word = ''.join([para[j][0] for j in range(i,i+t) ]).lower()
+                    #check if the word is in dictionary
+                    feat = 1 if self.dict_tree.search(word) else 0
+                    #add feat if found
+                    if feat == 1:
+                        dict_forward_feats[t-2] = 1
+                    #else check if that word is prefix or not, if not then exit the for loop
+                    elif feat == 0:
+                        if not self.dict_tree.startsWith(word):
+                            break
             # check backward words formed from [i,i-1] and [i,i-2], etc found in dict
             for t in range(1, self.args['dict_feat']):
-                word = ''.join([para[j][0] for j in range(i-t,i+1) ]).lower()
-                feat = 0 if (i-t) < 0 else (1 if self.dict_tree.search(word) else 2)
+                feat = 0 if (i-t) < 0 else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-t,i+1) ]).lower()) else 0)
                 if feat == 1:
                     dict_backward_feats[t-1] = 1
 
