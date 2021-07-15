@@ -3,23 +3,17 @@ import pickle
 from conllu import parse_incr
 class Trie:
     """
-    Implement a trie with insert, search, and startsWith methods.
+    A simple Trie with add, search, and startsWith functions.
     """
     def __init__(self):
         self.root = defaultdict()
 
-    # @param {string} word
-    # @return {void}
-    # Inserts a word into the trie.
-    def insert(self, word):
+    def add(self, word):
         current = self.root
         for letter in word:
             current = current.setdefault(letter, {})
         current.setdefault("_end")
 
-    # @param {string} word
-    # @return {boolean}
-    # Returns if the word is in the trie.
     def search(self, word):
         current = self.root
         for letter in word:
@@ -30,10 +24,6 @@ class Trie:
             return True
         return False
 
-    # @param {string} prefix
-    # @return {boolean}
-    # Returns if there is any word in the trie
-    # that starts with the given prefix.
     def startsWith(self, prefix):
         current = self.root
         for letter in prefix:
@@ -42,39 +32,32 @@ class Trie:
             current = current[letter]
         return True
 
-def main():
+def create_dictionary(train_path, external_path, dict_path):
     tree = Trie()
-    #tree_2 = Trie()
-    """
-    f = open("dict.txt", "r")
-    lines = f.readlines()
+    count = 0
+    word_list = ()
+    if train_path!=None:
+        train_file = open(train_path, "r", encoding="utf-8")
+        for tokenlist in parse_incr(train_file):
+            for token in tokenlist:
+                word = token['form']
+                word = word.lower()
+                if len(word)>1:
+                    if not any(map(str.isdigit, word)):
+                        tree.add(word)
+                        word_list.add(word)
+    if external_path != None:
+        external_file = open(external_path, "r", encoding="utf-8")
+        lines = external_file.readlines()
+        for line in lines:
+            word = line.replace("\n","")
+            if len(word)>1:
+                if not any(map(str.isdigit, word)):
+                    tree.add(word)
+                    word_list.add(word)
 
-
-    start_syllable = set([word.split()[0] for word in lines])
-    for syl in start_syllable:
-        tree_1.insert(syl)
-
-    end_syllable = set([word.split()[-1] for word in lines])
-    for syl in end_syllable:
-        tree_2.insert(syl)
-
-    """
-    data_file = open("./zh_gsdsimp-ud-train.conllu", "r", encoding="utf-8")
-    for tokenlist in parse_incr(data_file):
-        for token in tokenlist:
-            word = token.__str__()
-            if len(word)>1 and len(word) < 10:
-                tree.insert(word)
-                
-
-    with open('zhsimp_train.dict', 'wb') as config_dictionary_file:
-        pickle.dump(tree, config_dictionary_file)
-    #with open('vi-start.dictionary', 'wb') as config_dictionary_file_2:
-    #    pickle.dump(tree_1, config_dictionary_file_2)
-
-    config_dictionary_file.close()
-    #config_dictionary_file_2.close()
-    print("Succesfully generated dict files!")
-    
-if __name__=='__main__':
-    main()
+    if len(word_list)>0:
+        with open(dict_path, 'wb') as config_dictionary_file:
+            pickle.dump(tree, config_dictionary_file)
+        config_dictionary_file.close()
+        print("Succesfully generated dict file with total of ", len(word_list), " words.")

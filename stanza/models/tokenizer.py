@@ -112,6 +112,9 @@ def train(args):
             }
     train_batches = DataLoader(args, input_files=train_input_files)
     vocab = train_batches.vocab
+
+
+
     args['vocab_size'] = len(vocab)
 
     dev_input_files = {

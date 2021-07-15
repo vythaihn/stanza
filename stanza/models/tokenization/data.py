@@ -7,10 +7,14 @@ import logging
 import re
 import torch
 import pickle
+import os
+import stanza.utils.default_paths as default_paths
 from .vocab import Vocab
-from stanza.models.common.trie import Trie
+from stanza.models.tokenization.trie import Trie, create_dictionary
 
 logger = logging.getLogger('stanza')
+paths = default_paths.get_default_paths()
+
 
 def filter_consecutive_whitespaces(para):
     filtered = []
@@ -26,10 +30,35 @@ def filter_consecutive_whitespaces(para):
 NEWLINE_WHITESPACE_RE = re.compile(r'\n\s*\n')
 NUMERIC_RE = re.compile(r'^([\d]+[,\.]*)+$')
 WHITESPACE_RE = re.compile(r'\s')
-def load_dict():
+
+def load_dict(self):
+    shortname = self.args["shorthand"]
+
+    dict_path = "./stanza/models/tokenization/%s.dict" % (shortname)
+
+    if not os.path.exists(dict_path):
+        #creating a new dictionary file
+        tokenize_dir = paths["TOKENIZE_DATA_DIR"]
+        train_path = f"{tokenize_dir}/{shortname}.train.gold.conllu"
+        external_dict_path = f"{tokenize_dir}/{shortname}-externaldict.txt"
+        if not os.path.exists(external_dict_path):
+            logger.info("External dictionary not found!")
+            external_path = None
+        if not os.path.exists(train_path):
+            logger.info("Training dataset does not exist, thus cannot create dictionary" % (shortname))
+            train_path = None
+        if train_path==None and external_dict_path==None:
+            logger.info("Cannot find or create any dictionary due to files not found! Dictionary feature is disabled.")
+            return None
+
+        create_dictionary(train_path, external_path, dict_path)
+
     with open('./stanza/models/common/zhsimp_train.dict', 'rb') as config_dict_file_start:
         dict_tree = pickle.load(config_dict_file_start)
     return dict_tree
+
+
+
 class DataLoader:
     def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False):
         self.args = args

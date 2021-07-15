@@ -42,58 +42,32 @@ class Trie:
             current = current[letter]
         return True
 
-def main():
+def create_dictionary(train_path, external_path, dict_path):
     tree = Trie()
-    #tree_2 = Trie()
-    """
-    f = open("dict.txt", "r")
-    lines = f.readlines()
-
-    
-    start_syllable = set([word.split()[0] for word in lines])
-    for syl in start_syllable:
-        tree_1.insert(syl)
-
-    end_syllable = set([word.split()[-1] for word in lines])
-    for syl in end_syllable:
-        tree_2.insert(syl)
-
-    """
-    count = 0 
-    data_file = open("./vi_vlsp.train.gold.conllu", "r", encoding="utf-8")
-    
-    for tokenlist in parse_incr(data_file):
-        for token in tokenlist:
-            #word = token.__str__()
-            word = token['form']
-            #print(word)
-            word = word.lower()
-            if len(word)>1 and len(word) < 10:
+    count = 0
+    word_list = ()
+    if train_path!=None:
+        train_file = open(train_path, "r", encoding="utf-8")
+        for tokenlist in parse_incr(train_file):
+            for token in tokenlist:
+                word = token['form']
+                word = word.lower()
+                if len(word)>1:
+                    if not any(map(str.isdigit, word)):
+                        tree.insert(word)
+                        word_list.add(word)
+    if external_path != None:
+        external_file = open(external_path, "r", encoding="utf-8")
+        lines = external_file.readlines()
+        for line in lines:
+            word = line.replace("\n","")
+            if len(word)>1:
                 if not any(map(str.isdigit, word)):
                     tree.insert(word)
-                    count+=1
-            
+                    word_list.add(word)
 
-    print(count)
-    second_data = open("./VNDict.txt", "r", encoding="utf-8")
-    lines = second_data.readlines()
-    for line in lines:
-        word = line.replace("\n","")
-        #word = word.replace(" ","")
-        #print(word)
-        if len(word)>1 and len(word)<10:
-            if not any(map(str.isdigit, word)):
-                tree.insert(word)
-    
-                
-    with open('vi_train.dict', 'wb') as config_dictionary_file:
-        pickle.dump(tree, config_dictionary_file)
-    #with open('vi-start.dictionary', 'wb') as config_dictionary_file_2:
-    #    pickle.dump(tree_1, config_dictionary_file_2)
-
-    config_dictionary_file.close()
-    #config_dictionary_file_2.close()
-    print("Succesfully generated dict files!")
-    
-if __name__=='__main__':
-    main()
+    if len(word_list)>0:
+        with open(dict_path, 'wb') as config_dictionary_file:
+            pickle.dump(tree, config_dictionary_file)
+        config_dictionary_file.close()
+        print("Succesfully generated dict file with total of ", len(word_list), " words.")
