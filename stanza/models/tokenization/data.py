@@ -121,15 +121,22 @@ class DataLoader:
             funcs.append(func)
 
         length = len(para)
-        dict_funcs = []
-        if self.args['dict_feat'] != 0:
+
+        def extract_dict_feat(i):
+            dict_forward_feats = [0 for i in range(self.args['dict_feat']-1)]
+            dict_backward_feats = [0 for i in range(self.args['dict_feat']-1)]
+
             for t in range(2, self.args['dict_feat']+1):
-                func = lambda i: 0 if (i+t) > length else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+t) ]).lower()) else 0)
-                dict_funcs.append(func)
+            #for t in range(2, self.args['dict_feat'] + 1):
+                feat = 0 if (i+t) > length else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+t) ]).lower()) else 0)
+                if feat == 1:
+                    dict_forward_feats[t-2] = 1
             for t in range(1, self.args['dict_feat']):
-                func = lambda i: 0 if (i-t) < 0 else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-t,i+1) ]).lower()) else 0)
-                dict_funcs.append(func)
-            dictionary_func = lambda x: [f(x) for f in dict_funcs]
+                feat = 0 if (i-t) < 0 else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-t,i+1) ]).lower()) else 0)
+                if feat == 1:
+                    dict_backward_feats[t-1] = 1
+
+            return dict_forward_feats + dict_backward_feats
 
         # stacking all featurize functions
         composite_func = lambda x: [f(x) for f in funcs]
@@ -142,16 +149,11 @@ class DataLoader:
         use_start_of_para = 'start_of_para' in self.args['feat_funcs']
         current = []
 
-        previous_space = True
-        start_syllable_idx = -1
-        cur_syllable = ""
-        length = len(para)
-        
         for i, (unit, label) in enumerate(para):
             label1 = label if not self.eval else 0
             feats = composite_func(unit)
             if self.args['dict_feat'] != 0:
-                dict_feats = dictionary_func(i)
+                dict_feats = extract_dict_feat(i)
                 feats = feats + dict_feats
 
             # position-dependent features
