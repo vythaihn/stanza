@@ -31,8 +31,8 @@ NEWLINE_WHITESPACE_RE = re.compile(r'\n\s*\n')
 NUMERIC_RE = re.compile(r'^([\d]+[,\.]*)+$')
 WHITESPACE_RE = re.compile(r'\s')
 
-def load_dict(self):
-    shortname = self.args["shorthand"]
+def load_dict(args):
+    shortname = args["shorthand"]
 
     dict_path = "./stanza/models/tokenization/%s.dict" % (shortname)
 
@@ -63,7 +63,7 @@ class DataLoader:
     def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False):
         self.args = args
         self.eval = evaluation
-        self.dict_tree = load_dict()
+        self.dict_tree = load_dict(args)
         # get input files
         txt_file = input_files['txt']
         label_file = input_files['label']
