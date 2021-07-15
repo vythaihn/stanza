@@ -32,7 +32,7 @@ class Trie:
             current = current[letter]
         return True
 
-def create_dictionary(train_path, external_path, dict_path):
+def main(train_path, external_path, dict_path):
     tree = Trie()
     count = 0
     word_list = set()
@@ -61,3 +61,6 @@ def create_dictionary(train_path, external_path, dict_path):
             pickle.dump(tree, config_dictionary_file)
         config_dictionary_file.close()
         print("Succesfully generated dict file with total of ", len(word_list), " words.")
+
+if __name__=='__main__':
+    main()
