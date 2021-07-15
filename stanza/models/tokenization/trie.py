@@ -34,7 +34,6 @@ class Trie:
 
 def main(lang, train_path, external_path, dict_path):
     tree = Trie()
-    count = 0
     word_list = set()
     if train_path!=None:
         train_file = open(train_path, "r", encoding="utf-8")
@@ -45,6 +44,7 @@ def main(lang, train_path, external_path, dict_path):
                 #check multiple_syllable word for vi
                 if lang == "vi_vlsp":
                     if len(word.split(" ")) > 1:
+                        #do not include the words that includes numbers.
                         if not any(map(str.isdigit, word)):
                             tree.add(word)
                             word_list.add(word)
@@ -53,11 +53,13 @@ def main(lang, train_path, external_path, dict_path):
                         if not any(map(str.isdigit, word)):
                             tree.add(word)
                             word_list.add(word)
+        print("Added ", len(word_list), " words found in training set to dictionary.")
     if external_path != None:
         external_file = open(external_path, "r", encoding="utf-8")
         lines = external_file.readlines()
         for line in lines:
-            word = line.replace("\n","")
+            word = line.lower()
+            word = word.replace("\n","")
             # check multiple_syllable word for vi
             if lang == "vi_vlsp":
                 if len(word.split(" ")) > 1:

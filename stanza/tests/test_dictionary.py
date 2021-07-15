@@ -15,14 +15,16 @@ from stanza.models.tokenization.trie import Trie
 pytestmark = [pytest.mark.travis, pytest.mark.pipeline]
 
 # A single slice of the German tokenization data with no MWT in it
-VI_DATA = [[('T', 0), ('h', 0), ('à', 0), ('n', 0), ('h', 0), (' ', 0), ('p', 0), ('h', 0), ('ố', 0), (' ', 1), ('H', 0), ('ồ', 0), (' ', 0), ('C', 0), ('h', 0), ('í', 0), (' ', 0), ('M', 0), ('i', 0), ('n', 0), ('h', 0), (' ', 1), ('t', 0), ('h', 0), ('ậ', 0), ('t', 0), (' ', 1), ('đ', 0), ('ẹ', 0), ('p', 0), (' ', 1), ('t', 0), ('u', 0), ('y', 0), ('ệ', 0), ('t', 0), (' ', 0), ('v', 0), ('ờ', 0), ('i', 0), ('!', 1)]]
+VI_DATA = [[('T', 0), ('h', 0), ('à', 0), ('n', 0), ('h', 0), (' ', 0), ('p', 0), ('h', 0), ('ố', 1), (' ', 0), ('H', 0), ('ồ', 0), (' ', 0), ('C', 0), ('h', 0), ('í', 0), (' ', 0), ('M', 0), ('i', 0), ('n', 0), ('h', 1), (' ', 1), ('t', 0), ('h', 0), ('ậ', 0), ('t', 1), (' ', 0), ('đ', 0), ('ẹ', 0), ('p', 1), (' ', 0), ('t', 0), ('u', 0), ('y', 0), ('ệ', 0), ('t', 0), (' ', 0), ('v', 0), ('ờ', 0), ('i', 1), ('!', 1)]]
 
 
 
 FAKE_PROPERTIES_VI = {
     "lang":"vi",
-    'feat_funcs': ("space_before","capitalized"),
+    'shorthand':'vi_vlsp',
+    'feat_funcs': ("space_before","capitalized",'all_caps','numeric'),
     'max_seqlen': 300,
+    'dict_feat':20,
 }
 
 def test_vi_dict():
@@ -31,16 +33,28 @@ def test_vi_dict():
     One dataset has no mwt, the other does
     """
     data = DataLoader(args=FAKE_PROPERTIES_VI, input_data=VI_DATA)
-    words_check = ["nước hai","Nước Hai","Nguyễn Văn Đại"]
+    words_check = ["nước hai","Nước Hai","Nguyễn Văn Đại", "500.000"]
 
     #check for training dataset
     for word in words_check:
-        assert data.dict_tree.search(word)
+        if data.dict_tree.search(word):
+            print("These words are in dev set, not supposed in dict!")
+        assert not data.dict_tree.search(word)
+
+    words_check = ["20-9"]
+    if data.dict_tree.search(words_check[0]):
+        print("not training dict passed!")
+    assert not data.dict_tree.search(words_check[0])
 
     #check for external training dataset
-    words_check = ["","","","","","",""]
+    words_check = ["chối bay chối"]
     for word in words_check:
+        if not data.dict_tree.search(word):
+            print("not external passed!")
         assert data.dict_tree.search(word)
 
+
     print("Passed the test!")
+
+
 

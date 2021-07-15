@@ -31,8 +31,8 @@ NUMERIC_RE = re.compile(r'^([\d]+[,\.]*)+$')
 WHITESPACE_RE = re.compile(r'\s')
 
 def load_dict(args):
-    shortname = args["shorthand"]
 
+    shortname = args["shorthand"]
     dict_path = "./stanza/models/tokenization/%s.dict" % (shortname)
 
     if not os.path.exists(dict_path):
@@ -46,6 +46,9 @@ def load_dict(args):
         if not os.path.exists(train_path):
             logger.info("Training dataset does not exist, thus cannot create dictionary" % (shortname))
             train_path = None
+
+        #Still need to figure out how to inform back to the training that dict feat is disabled and the dimension of feats needs to
+        #be reduced.
         if train_path==None and external_dict_path==None:
             logger.info("Cannot find or create any dictionary due to files not found! Dictionary feature is disabled.")
             return None
@@ -185,10 +188,6 @@ class DataLoader:
         for i, (unit, label) in enumerate(para):
             label1 = label if not self.eval else 0
             feats = composite_func(unit)
-            #if dictionary feature is selected
-            if self.args['dict_feat'] != 0:
-                dict_feats = extract_dict_feat(i)
-                feats = feats + dict_feats
             # position-dependent features
             if use_end_of_para:
                 f = 1 if i == len(para)-1 else 0
@@ -196,6 +195,12 @@ class DataLoader:
             if use_start_of_para:
                 f = 1 if i == 0 else 0
                 feats.append(f)
+
+            #if dictionary feature is selected
+            if self.args['dict_feat'] != 0:
+                dict_feats = extract_dict_feat(i)
+                feats = feats + dict_feats
+
 
             current += [(unit, label, feats)]
             print(current)
@@ -346,10 +351,8 @@ class DataLoader:
             for i in range(len(raw_units)):
                 for j in range(len(raw_units[i])):
                     if mask_feat[i,j]:
-                        features[i,j,4:] = 0
+                        features[i,j,:] = 0
 
-                
-        #assert(mask != mask_feat)
         units = torch.from_numpy(units)
         labels = torch.from_numpy(labels)
         features = torch.from_numpy(features)

@@ -13,9 +13,9 @@ def find_spaces(sentence):
     for word_idx, word in enumerate(sentence):
         space = True
         if word_idx < len(sentence) - 1:
-            if sentence[word_idx+1] in (',', '.', '!', '?', ')', ':', ';', '”', '…', '...'):
+            if sentence[word_idx+1] in (',', '.', '!', '?', ')', ':', ';', '”', '…', '...','/', '%'):
                 space = False
-        if word in ('(', '“'):
+        if word in ('(', '“', '/'):
             space = False
         if word == '"':
             if odd_quotes:
@@ -31,15 +31,17 @@ def find_spaces(sentence):
 
 def write_file(vlsp_include_spaces, output_filename, sentences, shard):
     with open(output_filename, "w") as fout:
+        test = False
         for sent_idx, sentence in enumerate(sentences):
-            test = False
-            if sentence[len(sentence)-1] not in punctuation_set:
-                test = True
-                            
+
             fout.write("# sent_id = %s.%d\n" % (shard, sent_idx))
             orig_text = " ".join(sentence)
             if test:
                 fout.write("# newpar id =%s.%d.1\n" % (shard, sent_idx))
+                test = False
+            if sentence[len(sentence) - 1] not in punctuation_set:
+                test = True
+
             if vlsp_include_spaces:
                 fout.write("# text = %s\n" % orig_text)
             else:
