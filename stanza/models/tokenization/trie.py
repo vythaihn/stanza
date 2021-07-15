@@ -35,7 +35,7 @@ class Trie:
 def create_dictionary(train_path, external_path, dict_path):
     tree = Trie()
     count = 0
-    word_list = ()
+    word_list = set()
     if train_path!=None:
         train_file = open(train_path, "r", encoding="utf-8")
         for tokenlist in parse_incr(train_file):
