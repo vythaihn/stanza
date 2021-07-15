@@ -66,7 +66,7 @@ class DataLoader:
     def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False):
         self.args = args
         self.eval = evaluation
-        self.dict_tree = load_dict(args)
+        self.dict_tree = None if args['dict_feat'] == 0 else load_dict(args) 
         # get input files
         txt_file = input_files['txt']
         label_file = input_files['label']
@@ -203,7 +203,7 @@ class DataLoader:
 
 
             current += [(unit, label, feats)]
-            print(current)
+            #print(current)
             if label1 == 2 or label1 == 4: # end of sentence
                 if len(current) <= self.args['max_seqlen']:
                     # get rid of sentences that are too long during training of the tokenizer
