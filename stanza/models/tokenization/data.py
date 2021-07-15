@@ -119,28 +119,33 @@ class DataLoader:
                 raise Exception('Feature function "{}" is undefined.'.format(feat_func))
 
             funcs.append(func)
+        # stacking all featurize functions
+        composite_func = lambda x: [f(x) for f in funcs]
 
         length = len(para)
-
         def extract_dict_feat(i):
             dict_forward_feats = [0 for i in range(self.args['dict_feat']-1)]
             dict_backward_feats = [0 for i in range(self.args['dict_feat']-1)]
-
+            #check forward words formed from [i,i+1] and [i,i+2], etc found in dict
             for t in range(2, self.args['dict_feat']+1):
-            #for t in range(2, self.args['dict_feat'] + 1):
-                feat = 0 if (i+t) > length else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i,i+t) ]).lower()) else 0)
+                word = ''.join([para[j][0] for j in range(i,i+t) ]).lower()
+                #check if the word is in dictionary
+                feat = 0 if (i+t) > length else (1 if self.dict_tree.search(word) else 2)
+                #add feat if found
                 if feat == 1:
                     dict_forward_feats[t-2] = 1
+                #else check if that word is prefix or not, if not then exit the for loop
+                elif feat == 2:
+                    if not self.dict_tree.startsWith(word):
+                        break
+            # check backward words formed from [i,i-1] and [i,i-2], etc found in dict
             for t in range(1, self.args['dict_feat']):
-                feat = 0 if (i-t) < 0 else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-t,i+1) ]).lower()) else 0)
+                word = ''.join([para[j][0] for j in range(i-t,i+1) ]).lower()
+                feat = 0 if (i-t) < 0 else (1 if self.dict_tree.search(word) else 2)
                 if feat == 1:
                     dict_backward_feats[t-1] = 1
 
             return dict_forward_feats + dict_backward_feats
-
-        # stacking all featurize functions
-        composite_func = lambda x: [f(x) for f in funcs]
-
 
         def process_sentence(sent):
             return [self.vocab.unit2id(y[0]) for y in sent], [y[1] for y in sent], [y[2] for y in sent], [y[0] for y in sent]
@@ -148,14 +153,13 @@ class DataLoader:
         use_end_of_para = 'end_of_para' in self.args['feat_funcs']
         use_start_of_para = 'start_of_para' in self.args['feat_funcs']
         current = []
-
         for i, (unit, label) in enumerate(para):
             label1 = label if not self.eval else 0
             feats = composite_func(unit)
+            #if dictionary feature is selected
             if self.args['dict_feat'] != 0:
                 dict_feats = extract_dict_feat(i)
                 feats = feats + dict_feats
-
             # position-dependent features
             if use_end_of_para:
                 f = 1 if i == len(para)-1 else 0
@@ -169,7 +173,6 @@ class DataLoader:
                 if len(current) <= self.args['max_seqlen']:
                     # get rid of sentences that are too long during training of the tokenizer
                     res.append(process_sentence(current))
-                #print(current)
                 current = []
                 
         if len(current) > 0:
