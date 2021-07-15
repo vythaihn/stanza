@@ -124,10 +124,10 @@ class DataLoader:
 
         length = len(para)
         def extract_dict_feat(i):
-            dict_forward_feats = [0 for i in range(self.args['dict_feat']-1)]
-            dict_backward_feats = [0 for i in range(self.args['dict_feat']-1)]
+            dict_forward_feats = [0 for i in range(self.args['dict_feat'])]
+            dict_backward_feats = [0 for i in range(self.args['dict_feat'])]
             #check forward words formed from [i,i+1] and [i,i+2], etc found in dict
-            for t in range(2, self.args['dict_feat']+1):
+            for t in range(2, self.args['dict_feat']+2):
                 if (i + t) <= length:
                     word = ''.join([para[j][0] for j in range(i,i+t) ]).lower()
                     #check if the word is in dictionary
@@ -140,7 +140,7 @@ class DataLoader:
                         if not self.dict_tree.startsWith(word):
                             break
             # check backward words formed from [i,i-1] and [i,i-2], etc found in dict
-            for t in range(1, self.args['dict_feat']):
+            for t in range(1, self.args['dict_feat']+1):
                 feat = 0 if (i-t) < 0 else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-t,i+1) ]).lower()) else 0)
                 if feat == 1:
                     dict_backward_feats[t-1] = 1
