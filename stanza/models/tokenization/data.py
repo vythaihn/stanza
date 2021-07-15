@@ -43,7 +43,7 @@ def load_dict(args):
         external_dict_path = f"{tokenize_dir}/{shortname}-externaldict.txt"
         if not os.path.exists(external_dict_path):
             logger.info("External dictionary not found!")
-            external_path = None
+            external_dict_path = None
         if not os.path.exists(train_path):
             logger.info("Training dataset does not exist, thus cannot create dictionary" % (shortname))
             train_path = None
@@ -51,7 +51,7 @@ def load_dict(args):
             logger.info("Cannot find or create any dictionary due to files not found! Dictionary feature is disabled.")
             return None
 
-        create_dictionary(train_path, external_path, dict_path)
+        create_dictionary(train_path, external_dict_path, dict_path)
 
     with open('./stanza/models/common/zhsimp_train.dict', 'rb') as config_dict_file_start:
         dict_tree = pickle.load(config_dict_file_start)
