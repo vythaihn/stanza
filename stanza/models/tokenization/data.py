@@ -165,7 +165,6 @@ class DataLoader:
                 feats.append(f)
 
             current += [(unit, label, feats)]
-            print(current)
             if label1 == 2 or label1 == 4: # end of sentence
                 if len(current) <= self.args['max_seqlen']:
                     # get rid of sentences that are too long during training of the tokenizer
