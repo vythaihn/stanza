@@ -31,7 +31,8 @@ def test_vi_dict():
     One dataset has no mwt, the other does
     """
     data = DataLoader(args=FAKE_PROPERTIES_VI, input_data=VI_DATA)
-    words_check = ["nước hai","Nước Hai","Nguyễn Văn Đại","","","",""]
+    words_check = ["nước hai","Nước Hai","Nguyễn Văn Đại"]
+
     #check for training dataset
     for word in words_check:
         assert data.dict_tree.search(word)
@@ -40,4 +41,6 @@ def test_vi_dict():
     words_check = ["","","","","","",""]
     for word in words_check:
         assert data.dict_tree.search(word)
+
+    print("Passed the test!")
 

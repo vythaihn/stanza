@@ -32,7 +32,7 @@ class Trie:
             current = current[letter]
         return True
 
-def main(train_path, external_path, dict_path):
+def main(lang, train_path, external_path, dict_path):
     tree = Trie()
     count = 0
     word_list = set()
@@ -42,19 +42,33 @@ def main(train_path, external_path, dict_path):
             for token in tokenlist:
                 word = token['form']
                 word = word.lower()
-                if len(word)>1:
-                    if not any(map(str.isdigit, word)):
-                        tree.add(word)
-                        word_list.add(word)
+                #check multiple_syllable word for vi
+                if lang == "vi_vlsp":
+                    if len(word.split(" ")) > 1:
+                        if not any(map(str.isdigit, word)):
+                            tree.add(word)
+                            word_list.add(word)
+                else:
+                    if len(word)>1:
+                        if not any(map(str.isdigit, word)):
+                            tree.add(word)
+                            word_list.add(word)
     if external_path != None:
         external_file = open(external_path, "r", encoding="utf-8")
         lines = external_file.readlines()
         for line in lines:
             word = line.replace("\n","")
-            if len(word)>1:
-                if not any(map(str.isdigit, word)):
-                    tree.add(word)
-                    word_list.add(word)
+            # check multiple_syllable word for vi
+            if lang == "vi_vlsp":
+                if len(word.split(" ")) > 1:
+                    if not any(map(str.isdigit, word)):
+                        tree.add(word)
+                        word_list.add(word)
+            else:
+                if len(word)>1:
+                    if not any(map(str.isdigit, word)):
+                        tree.add(word)
+                        word_list.add(word)
 
     if len(word_list)>0:
         with open(dict_path, 'wb') as config_dictionary_file:
