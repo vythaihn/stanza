@@ -50,7 +50,7 @@ def load_dict(args):
             logger.info("Cannot find or create any dictionary due to files not found! Dictionary feature is disabled.")
             return None
 
-        main(train_path, external_dict_path, dict_path)
+        main(shortname, train_path, external_dict_path, dict_path)
 
     with open(dict_path, 'rb') as config_dict_file_start:
         dict_tree = pickle.load(config_dict_file_start)
