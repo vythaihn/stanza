@@ -52,7 +52,7 @@ def load_dict(args):
 
         main(train_path, external_dict_path, dict_path)
 
-    with open('./stanza/models/common/zhsimp_train.dict', 'rb') as config_dict_file_start:
+    with open(dict_path, 'rb') as config_dict_file_start:
         dict_tree = pickle.load(config_dict_file_start)
 
     return dict_tree
