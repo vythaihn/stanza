@@ -167,7 +167,7 @@ class DataLoader:
                     forward_word += para[i+t][0].lower()
                     feat = 1 if self.dict_tree.search(forward_word) else 0
                     if feat == 1:
-                        dict_forward_feats[t] = 1
+                        dict_forward_feats[t-1] = 1
                     #else check if that word is prefix or not, if not then exit the for loop
                     elif feat == 0:
                         if not self.dict_tree.startsWith(forward_word):
