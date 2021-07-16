@@ -49,7 +49,7 @@ def main(lang, train_path, external_path, dict_path):
                             tree.add(word)
                             word_list.add(word)
                 else:
-                    if len(word)>1:
+                    if len(word)>=1 and any(map(str.isalpha, word)):
                         if not any(map(str.isdigit, word)):
                             tree.add(word)
                             word_list.add(word)

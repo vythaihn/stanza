@@ -159,23 +159,27 @@ class DataLoader:
             dict_forward_feats = [0 for i in range(self.args['dict_feat'])]
             dict_backward_feats = [0 for i in range(self.args['dict_feat'])]
             #check forward words formed from [i,i+1] and [i,i+2], etc found in dict
-            for t in range(2, self.args['dict_feat']+2):
-                if (i + t) <= length:
-                    word = ''.join([para[j][0] for j in range(i,i+t) ]).lower()
-                    #check if the word is in dictionary
-                    feat = 1 if self.dict_tree.search(word) else 0
-                    #add feat if found
+            forward_word = ''
+            backward_word = ''
+            found_prefix = True
+            for t in range(0,self.args['dict_feat']):
+                if (i + t) <= length and found_prefix:
+                    forward_word += para[i+t][0].lower()
+                    feat = 1 if self.dict_tree.search(forward_word) else 0
                     if feat == 1:
-                        dict_forward_feats[t-2] = 1
+                        dict_forward_feats[t] = 1
                     #else check if that word is prefix or not, if not then exit the for loop
                     elif feat == 0:
-                        if not self.dict_tree.startsWith(word):
-                            break
+                        if not self.dict_tree.startsWith(forward_word):
+                            found_prefix = False
+
             # check backward words formed from [i,i-1] and [i,i-2], etc found in dict
-            for t in range(1, self.args['dict_feat']+1):
-                feat = 0 if (i-t) < 0 else (1 if self.dict_tree.search(''.join([para[j][0] for j in range(i-t,i+1) ]).lower()) else 0)
-                if feat == 1:
-                    dict_backward_feats[t-1] = 1
+            #for t in range(1, self.args['dict_feat']+1):
+                if (i - t) >= 0:
+                    backward_word = para[i-t][0].lower() + backward_word
+                    feat = 1 if self.dict_tree.search(backward_word) else 0
+                    if feat == 1:
+                        dict_backward_feats[t-1] = 1
 
             return dict_forward_feats + dict_backward_feats
 
