@@ -233,6 +233,7 @@ class DataLoader:
                 if len(current) <= self.args['max_seqlen']:
                     # get rid of sentences that are too long during training of the tokenizer
                     res.append(process_sentence(current))
+                print(current)
                 current = []
                 
         if len(current) > 0:
