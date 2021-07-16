@@ -159,6 +159,7 @@ class DataLoader:
             dict_forward_feats = [0 for i in range(self.args['dict_feat'])]
             dict_backward_feats = [0 for i in range(self.args['dict_feat'])]
             #check forward words formed from [i,i+1] and [i,i+2], etc found in dict
+            """
             forward_word = para[i][0]
             backward_word = para[i][0]
             found_prefix = True
@@ -180,7 +181,28 @@ class DataLoader:
                     feat = 1 if self.dict_tree.search(backward_word) else 0
                     if feat == 1:
                         dict_backward_feats[t-1] = 1
+            """
+            forward_word = ''
+            backward_word = ''
+            found_prefix = True
+            for t in range(0,self.args['dict_feat']):
+                if (i + t) <= length-1 and found_prefix:
+                    forward_word += para[i+t][0].lower()
+                    feat = 1 if self.dict_tree.search(forward_word) else 0
+                    if feat == 1:
+                        dict_forward_feats[t] = 1
+                    #else check if that word is prefix or not, if not then exit the for loop
+                    elif feat == 0:
+                        if not self.dict_tree.startsWith(forward_word):
+                            found_prefix = False
 
+            # check backward words formed from [i,i-1] and [i,i-2], etc found in dict
+            #for t in range(1, self.args['dict_feat']+1):
+                if (i - t) >= 0:
+                    backward_word = para[i-t][0].lower() + backward_word
+                    feat = 1 if self.dict_tree.search(backward_word) else 0
+                    if feat == 1:
+                        dict_backward_feats[t-1] = 1
             return dict_forward_feats + dict_backward_feats
 
         def process_sentence(sent):
