@@ -159,8 +159,8 @@ class DataLoader:
             dict_forward_feats = [0 for i in range(self.args['dict_feat'])]
             dict_backward_feats = [0 for i in range(self.args['dict_feat'])]
             #check forward words formed from [i,i+1] and [i,i+2], etc found in dict
-            forward_word = ''
-            backward_word = ''
+            forward_word = para[i][0]
+            backward_word = para[i][0]
             found_prefix = True
             for t in range(1,self.args['dict_feat']+1):
                 if (i + t) <= length-1 and found_prefix:
