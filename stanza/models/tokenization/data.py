@@ -159,7 +159,7 @@ class DataLoader:
             dict_forward_feats = [0 for i in range(self.args['dict_feat'])]
             dict_backward_feats = [0 for i in range(self.args['dict_feat'])]
             #check forward words formed from [i,i+1] and [i,i+2], etc found in dict
-            """
+            
             forward_word = para[i][0]
             backward_word = para[i][0]
             found_prefix = True
@@ -203,6 +203,7 @@ class DataLoader:
                     feat = 1 if self.dict_tree.search(backward_word) else 0
                     if feat == 1:
                         dict_backward_feats[t] = 1
+            """
             return dict_forward_feats + dict_backward_feats
 
         def process_sentence(sent):
@@ -233,7 +234,6 @@ class DataLoader:
                 if len(current) <= self.args['max_seqlen']:
                     # get rid of sentences that are too long during training of the tokenizer
                     res.append(process_sentence(current))
-                print(current)
                 current = []
                 
         if len(current) > 0:
