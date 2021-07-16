@@ -175,7 +175,7 @@ class DataLoader:
 
             # check backward words formed from [i,i-1] and [i,i-2], etc found in dict
             #for t in range(1, self.args['dict_feat']+1):
-                if (i - t) >= 1:
+                if (i - t) >= 0:
                     backward_word = para[i-t][0].lower() + backward_word
                     feat = 1 if self.dict_tree.search(backward_word) else 0
                     if feat == 1:
