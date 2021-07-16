@@ -163,7 +163,7 @@ class DataLoader:
             backward_word = ''
             found_prefix = True
             for t in range(1,self.args['dict_feat']+1):
-                if (i + t) <= length and found_prefix:
+                if (i + t) <= length-1 and found_prefix:
                     forward_word += para[i+t][0].lower()
                     feat = 1 if self.dict_tree.search(forward_word) else 0
                     if feat == 1:
@@ -175,7 +175,7 @@ class DataLoader:
 
             # check backward words formed from [i,i-1] and [i,i-2], etc found in dict
             #for t in range(1, self.args['dict_feat']+1):
-                if (i - t) >= 0:
+                if (i - t) >= 1:
                     backward_word = para[i-t][0].lower() + backward_word
                     feat = 1 if self.dict_tree.search(backward_word) else 0
                     if feat == 1:
