@@ -162,7 +162,7 @@ class DataLoader:
             forward_word = ''
             backward_word = ''
             found_prefix = True
-            for t in range(0,self.args['dict_feat']):
+            for t in range(1,self.args['dict_feat']+1):
                 if (i + t) <= length and found_prefix:
                     forward_word += para[i+t][0].lower()
                     feat = 1 if self.dict_tree.search(forward_word) else 0
