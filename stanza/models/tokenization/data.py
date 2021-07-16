@@ -66,7 +66,7 @@ class DataLoader:
     def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False):
         self.args = args
         self.eval = evaluation
-        self.dict_tree = load_dict(args)
+        self.dict_tree = None if self.args["dict_feat"] == 0 else load_dict(args)
         # get input files
         txt_file = input_files['txt']
         label_file = input_files['label']

@@ -43,7 +43,7 @@ def main(lang, train_path, external_path, dict_path):
                 word = word.lower()
                 #check multiple_syllable word for vi
                 if lang == "vi_vlsp":
-                    if len(word.split(" ")) > 1:
+                    if len(word.split(" ")) >= 1 and any(map(str.isalpha, word)):
                         #do not include the words that includes numbers.
                         if not any(map(str.isdigit, word)):
                             tree.add(word)
