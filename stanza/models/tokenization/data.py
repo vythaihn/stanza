@@ -202,7 +202,7 @@ class DataLoader:
                     backward_word = para[i-t][0].lower() + backward_word
                     feat = 1 if self.dict_tree.search(backward_word) else 0
                     if feat == 1:
-                        dict_backward_feats[t-1] = 1
+                        dict_backward_feats[t] = 1
             return dict_forward_feats + dict_backward_feats
 
         def process_sentence(sent):
