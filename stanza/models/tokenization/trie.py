@@ -1,7 +1,7 @@
 from collections import defaultdict
 import pickle
 from conllu import parse_incr
-
+import re
 class Trie:
     """
     A simple Trie with add, search, and startsWith functions.
@@ -36,6 +36,8 @@ class Trie:
 def create_dictionary(lang, train_path, external_path, dict_path):
     tree = Trie()
     word_list = set()
+    pattern_th = re.compile(r"(?:[^\d\W]+)|\s")
+
     #check if training file exists
     if train_path!=None:
         train_file = open(train_path, "r", encoding="utf-8")
@@ -46,6 +48,11 @@ def create_dictionary(lang, train_path, external_path, dict_path):
                 if lang == "vi_vlsp":
                     if len(word.split(" "))>1 and any(map(str.isalpha, word)):
                         #do not include the words that contain numbers.
+                        if not any(map(str.isdigit, word)):
+                            tree.add(word)
+                            word_list.add(word)
+                if lang == "th_orchid":
+                    if len(word) > 1 and any(map(pattern_th.match, word)):
                         if not any(map(str.isdigit, word)):
                             tree.add(word)
                             word_list.add(word)
@@ -64,6 +71,11 @@ def create_dictionary(lang, train_path, external_path, dict_path):
             # check multiple_syllable word for vi
             if lang == "vi_vlsp":
                 if len(word.split(" "))>1 and any(map(str.isalpha, word)):
+                    if not any(map(str.isdigit, word)):
+                        tree.add(word)
+                        word_list.add(word)
+            if lang == "th_orchid":
+                if len(word)>1 and any(map(pattern_th.match, word)):
                     if not any(map(str.isdigit, word)):
                         tree.add(word)
                         word_list.add(word)
