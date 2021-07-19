@@ -40,7 +40,7 @@ def create_separabe_dict(lang, train_path, dict_path):
     dict_single = {}
     dict_multiple = {}
     #check if training file exists
-
+    print("Create a sep dict for ", lang)
     if train_path!=None:
         train_file = open(train_path, "r", encoding="utf-8")
         for tokenlist in parse_incr(train_file):
