@@ -65,7 +65,7 @@ def create_separabe_dict(lang, train_path, dict_path):
                         if len(word) > 1:
                             dict_multiple[word[0]] = dict_multiple.get(word[0],0)+1
 
-        margin = 50
+        margin = 5
         count = 0
         avg = 0
         for syllable in list(dict_single):
