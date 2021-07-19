@@ -48,12 +48,14 @@ def create_separabe_dict(lang, train_path, dict_path):
                 word = token['form'].lower()
                 #check multiple_syllable word for vi
                 if lang == "vi_vlsp":
-                    if len(word.split(" "))>1 and any(map(str.isalpha, word)):
+                    if any(map(str.isalpha, word)) and not any(map(str.isdigit, word)):
                         #do not include the words that contain numbers.
-                        if not any(map(str.isdigit, word)):
-                            #tree.add(word)
-                            word_list.add(word)
-                if lang == "th_orchid":
+                        word = word.split(" ")
+                        if len(word) == 1:
+                            dict_single[word[0]] = dict_single.get(word[0],0)+1
+                        if len(word) > 1:
+                            dict_multiple[word[0]] = dict_multiple.get(word[0],0)+1
+                if lang == "th_orchid" or lang == "th_lst20" :
                     if any(map(pattern_th.match, word)) and not any(map(str.isdigit, word)):
                         if len(word) == 1:
                             dict_single[word] = dict_single.get(word,0)+1
