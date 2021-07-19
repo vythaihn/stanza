@@ -68,7 +68,7 @@ def create_separabe_dict(lang, train_path, dict_path):
         margin = 50
         count = 0
         avg = 0
-        for syllable in dict_single:
+        for syllable in list(dict_single):
             if not (dict_single[syllable] > dict_multiple.get(syllable,0) + margin):
                 del dict_single[syllable]
             else:
