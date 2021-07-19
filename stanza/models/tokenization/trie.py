@@ -33,6 +33,62 @@ class Trie:
             current = current[letter]
         return True
 
+def create_separabe_dict(lang, train_path, dict_path):
+    tree = Trie()
+    word_list = set()
+    pattern_th = re.compile(r"(?:[^\d\W]+)|\s")
+    dict_single = {}
+    dict_multiple = {}
+    #check if training file exists
+
+    if train_path!=None:
+        train_file = open(train_path, "r", encoding="utf-8")
+        for tokenlist in parse_incr(train_file):
+            for token in tokenlist:
+                word = token['form'].lower()
+                #check multiple_syllable word for vi
+                if lang == "vi_vlsp":
+                    if len(word.split(" "))>1 and any(map(str.isalpha, word)):
+                        #do not include the words that contain numbers.
+                        if not any(map(str.isdigit, word)):
+                            #tree.add(word)
+                            word_list.add(word)
+                if lang == "th_orchid":
+                    if len(word) > 1 and any(map(pattern_th.match, word)):
+                        if not any(map(str.isdigit, word)):
+                            #tree.add(word)
+                            word_list.add(word)
+                else:
+                    if any(map(str.isalpha, word)) and not any(map(str.isdigit, word)):
+                        if len(word) == 1:
+                            dict_single[word] = dict_single.get(word,0)+1
+                        if len(word) > 1:
+                            dict_multiple[word[0]] = dict_multiple.get(word[0],0)+1
+
+        margin = 50
+        count = 0
+        avg = 0
+        for syllable in dict_single:
+            if not (dict_single[syllable] > dict_multiple.get(syllable,0) + margin):
+                temp = dict_single.pop(syllable,0)
+            else:
+                dict_single[syllable] = dict_single.get(syllable) + dict_multiple.get(syllable,0)
+                count += 1
+                avg += dict_single[syllable]
+        avg = avg/count
+        count = 0
+        for syllable in dict_single:
+            if (dict_single[syllable] > avg):
+                tree.add(syllable)
+                count += 1
+        print("Added ", count, " separable syllables found in training set to dictionary.")
+
+    if count>0:
+        with open(dict_path, 'wb') as config_dictionary_file:
+            pickle.dump(tree, config_dictionary_file)
+        config_dictionary_file.close()
+
+
 def create_dictionary(lang, train_path, external_path, dict_path):
     tree = Trie()
     word_list = set()

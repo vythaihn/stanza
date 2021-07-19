@@ -10,7 +10,7 @@ import pickle
 import os
 import stanza.utils.default_paths as default_paths
 from .vocab import Vocab
-from stanza.models.tokenization.trie import Trie, create_dictionary
+from stanza.models.tokenization.trie import Trie, create_dictionary, create_separabe_dict
 
 logger = logging.getLogger('stanza')
 paths = default_paths.get_default_paths()
@@ -60,11 +60,37 @@ def load_dict(self):
 
     return dict_tree
 
+def load_sep_dict(self):
+
+    shortname = self.args["shorthand"]
+    dict_path = "./stanza/models/tokenization/%s.dict" % (shortname + "_sep")
+
+    if not os.path.exists(dict_path):
+        #creating a new dictionary file
+        tokenize_dir = paths["TOKENIZE_DATA_DIR"]
+        train_path = f"{tokenize_dir}/{shortname}.train.gold.conllu"
+        if not os.path.exists(train_path):
+            logger.info("Training dataset does not exist, thus cannot create dictionary" % (shortname))
+            train_path = None
+        # TODO: Still need to figure out how to inform back to the training that dict feat
+        # is disabled and the dimension of feats needs to be reduced.
+        if train_path==None:
+            logger.info("Cannot find or create any dictionary due to files not found! Dictionary feature is disabled.")
+            return None
+
+        create_separabe_dict(shortname, train_path, dict_path)
+
+    with open(dict_path, 'rb') as config_dict_file_start:
+        dict_tree = pickle.load(config_dict_file_start)
+
+    return dict_tree
 class DataLoader:
     def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False):
         self.args = args
         self.eval = evaluation
         self.dict_tree = None if self.args["dict_feat"] == 0 else load_dict(self)
+        self.sep_dict = None if not self.args["sep_dict"] else load_sep_dict(self)
+
         # get input files
         txt_file = input_files['txt']
         label_file = input_files['label']
@@ -194,6 +220,10 @@ class DataLoader:
                 feats.append(f)
             if use_start_of_para:
                 f = 1 if i == 0 else 0
+                feats.append(f)
+
+            if self.sep_dict:
+                f = self.dict_tree.search(unit)
                 feats.append(f)
             #if dictionary feature is selected
             if self.args['dict_feat'] > 0:
