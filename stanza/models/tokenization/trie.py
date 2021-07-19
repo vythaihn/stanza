@@ -55,7 +55,7 @@ def create_separabe_dict(lang, train_path, dict_path):
                             dict_single[word[0]] = dict_single.get(word[0],0)+1
                         if len(word) > 1:
                             dict_multiple[word[0]] = dict_multiple.get(word[0],0)+1
-                if lang == "th_orchid" or lang == "th_lst20" :
+                elif lang == "th_orchid" or lang == "th_lst20" :
                     if any(map(pattern_th.match, word)) and not any(map(str.isdigit, word)):
                         if len(word) == 1:
                             dict_single[word] = dict_single.get(word,0)+1
@@ -110,7 +110,7 @@ def create_dictionary(lang, train_path, external_path, dict_path):
                         if not any(map(str.isdigit, word)):
                             tree.add(word)
                             word_list.add(word)
-                if lang == "th_orchid" or lang == "th_lst20":
+                elif lang == "th_orchid" or lang == "th_lst20":
                     if len(word) > 1 and any(map(pattern_th.match, word)):
                         if not any(map(str.isdigit, word)):
                             tree.add(word)
@@ -133,7 +133,7 @@ def create_dictionary(lang, train_path, external_path, dict_path):
                     if not any(map(str.isdigit, word)):
                         tree.add(word)
                         word_list.add(word)
-            if lang == "th_orchid" or lang == "th_lst20":
+            elif lang == "th_orchid" or lang == "th_lst20":
                 if len(word)>1 and any(map(pattern_th.match, word)):
                     if not any(map(str.isdigit, word)):
                         tree.add(word)
