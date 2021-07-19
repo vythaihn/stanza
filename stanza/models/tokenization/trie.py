@@ -70,7 +70,7 @@ def create_separabe_dict(lang, train_path, dict_path):
         avg = 0
         for syllable in dict_single:
             if not (dict_single[syllable] > dict_multiple.get(syllable,0) + margin):
-                temp = dict_single.pop(syllable,0)
+                del dict_single[syllable]
             else:
                 dict_single[syllable] = dict_single.get(syllable) + dict_multiple.get(syllable,0)
                 count += 1
