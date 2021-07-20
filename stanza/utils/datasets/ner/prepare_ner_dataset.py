@@ -10,7 +10,7 @@ Also, Finnish Turku dataset, available here:
   - https://turkunlp.org/fin-ner.html
   - Download and unzip the corpus, putting the .tsv files into
     $NERBASE/fi_turku
-  - prepare_ner_dataset.py hu_nytk fi_turku
+  - prepare_ner_dataset.py fi_turku
 
 IJCNLP 2008 produced a few Indian language NER datasets.
   description:
@@ -18,6 +18,7 @@ IJCNLP 2008 produced a few Indian language NER datasets.
   download:
     http://ltrc.iiit.ac.in/ner-ssea-08/index.cgi?topic=5
   The models produced from these datasets have extremely low recall, unfortunately.
+  - prepare_ner_dataset.py hi-fire2013
 
 FIRE 2013 also produced NER datasets for Indian languages.
   http://au-kbc.org/nlp/NER-FIRE2013/index.html
@@ -39,6 +40,7 @@ There are two Hungarian datasets are available here:
   You can also build individual pieces with hu_rgai_business or hu_rgai_criminal
   Create a subdirectory of $NERBASE, $NERBASE/hu_rgai, and download both of
     the pieces and unzip them in that directory.
+  - prepare_ner_dataset.py hu_rgai
 
 Another Hungarian dataset is here:
   - https://github.com/nytud/NYTK-NerKor
@@ -47,6 +49,7 @@ Another Hungarian dataset is here:
 
 The two Hungarian datasets can be combined with hu_combined
   TODO: verify that there is no overlap in text
+  - prepare_ner_dataset.py hu_combined
 
 BSNLP publishes NER datasets for Eastern European languages.
   - In 2019 they published BG, CS, PL, RU.
@@ -65,6 +68,7 @@ BSNLP publishes NER datasets for Eastern European languages.
   - we use the code name "bg_bsnlp19".  Other languages from
     bsnlp 2019 can be supported by adding the appropriate
     functionality in convert_bsnlp.py.
+  - prepare_ner_dataset.py bg_bsnlp19
 """
 
 import glob
@@ -169,6 +173,7 @@ def process_fire_2013(paths, dataset):
     """
     short_name = treebank_to_short_name(dataset)
     langcode, _ = short_name.split("_")
+    short_name = "%s_fire2013" % langcode
     if not langcode in ("hi", "en", "ta", "bn", "mal"):
         raise ValueError("Language %s not one of the FIRE 2013 languages")
     language = lcode2lang[langcode].lower()
@@ -316,10 +321,9 @@ def process_bsnlp(paths, short_name):
         output_filename = os.path.join(base_output_path, '%s.%s.json' % (short_name, shard))
         prepare_ner_file.process_dataset(csv_file, output_filename)
 
-def main():
+def main(dataset_name):
     paths = default_paths.get_default_paths()
 
-    dataset_name = sys.argv[1]
     random.seed(1234)
 
     if dataset_name == 'fi_turku':
@@ -344,4 +348,4 @@ def main():
         raise ValueError(f"dataset {dataset_name} currently not handled")
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1])

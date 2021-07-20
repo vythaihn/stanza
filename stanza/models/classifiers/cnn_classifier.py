@@ -12,6 +12,7 @@ import stanza.models.classifiers.classifier_args as classifier_args
 import stanza.models.classifiers.data as data
 from stanza.models.common.vocab import PAD_ID, UNK_ID
 from stanza.models.common.data import get_long_tensor, sort_all
+from stanza.models.common.utils import split_into_batches, sort_with_indices, unsort
 # TODO: move CharVocab to common
 from stanza.models.pos.vocab import CharVocab
 
@@ -73,10 +74,7 @@ class CNNClassifier(nn.Module):
                                       charlm_projection = args.charlm_projection,
                                       model_type = 'CNNClassifier')
 
-        if args.char_lowercase:
-            self.char_case = lambda x: x.lower()
-        else:
-            self.char_case = lambda x: x
+        self.char_lowercase = args.char_lowercase
 
         self.unsaved_modules = []
 
@@ -114,6 +112,7 @@ class CNNClassifier(nn.Module):
             self.extra_vocab = list(extra_vocab)
             self.extra_vocab_map = { word: i for i, word in enumerate(self.extra_vocab) }
             # TODO: possibly add regularization specifically on the extra embedding?
+            # TODO FIXME: word of idx 0 is being shared with the padding!
             self.extra_embedding = nn.Embedding(num_embeddings = len(extra_vocab),
                                                 embedding_dim = self.config.extra_wordvec_dim,
                                                 max_norm = self.config.extra_wordvec_max_norm,
@@ -169,7 +168,6 @@ class CNNClassifier(nn.Module):
 
         self.dropout = nn.Dropout(self.config.dropout)
 
-
     def add_unsaved_module(self, name, module):
         self.unsaved_modules += [name]
         setattr(self, name, module)
@@ -200,6 +198,8 @@ class CNNClassifier(nn.Module):
 
         return char_reps
 
+    def char_case(self, x: str) -> str:
+        return x.lower() if self.char_lowercase else x
 
     def forward(self, inputs, device=None):
         if not device:
@@ -368,6 +368,8 @@ class CNNClassifier(nn.Module):
         for fc in self.fc_layers[:-1]:
             previous_layer = self.dropout(F.relu(fc(previous_layer)))
         out = self.fc_layers[-1](previous_layer)
+        # note that we return the raw logits rather than use a softmax
+        # https://discuss.pytorch.org/t/multi-class-cross-entropy-loss-and-softmax-in-pytorch/24920/4
         return out
 
 
@@ -445,9 +447,10 @@ def label_text(model, text, batch_size=None, reverse_label_map=None, device=None
 
     if batch_size is None:
         intervals = [(0, len(text))]
+        orig_idx = None
     else:
-        # TODO: results would be better if we sort by length and then unsort
-        intervals = [(i, min(i+batch_size, len(text))) for i in range(0, len(text), batch_size)]
+        text, orig_idx = sort_with_indices(text, key=len, reverse=True)
+        intervals = split_into_batches(text, batch_size)
     labels = []
     for interval in intervals:
         if interval[1] - interval[0] == 0:
@@ -456,6 +459,10 @@ def label_text(model, text, batch_size=None, reverse_label_map=None, device=None
         output = model(text[interval[0]:interval[1]], device)
         predicted = torch.argmax(output, dim=1)
         labels.extend(predicted.tolist())
+
+    if orig_idx:
+        text = unsort(text, orig_idx)
+        labels = unsort(labels, orig_idx)
 
     logger.debug("Found labels")
     for (label, sentence) in zip(labels, text):
