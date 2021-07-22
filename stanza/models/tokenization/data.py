@@ -198,7 +198,7 @@ class DataLoader:
                     feat = self.dict_tree.get(forward_word,0)
                     #feat = 1 if self.dict_tree.search(forward_word) else 0
                     #if feat != 1:
-                    dict_forward_feats[t-1] = feat
+                    dict_forward_feats[t] = feat
                     #else check if that word is a prefix or not, if not then stop searching for forward word
                     if feat == 0:
                         found_prefix = False
@@ -210,7 +210,7 @@ class DataLoader:
                     feat = self.dict_tree.get(forward_word,0)
 
                     #feat = 1 if self.dict_tree.search(backward_word) else 0
-                    dict_forward_feats[t-1] = feat
+                    dict_forward_feats[t] = feat
 
                     #if feat == 1:
                     #    dict_backward_feats[t-1] = 1
@@ -246,7 +246,7 @@ class DataLoader:
                 if len(current) <= self.args['max_seqlen']:
                     # get rid of sentences that are too long during training of the tokenizer
                     res.append(process_sentence(current))
-                print(current)
+                #print(current)
                 current = []
                 
         if len(current) > 0:
