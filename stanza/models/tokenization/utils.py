@@ -15,7 +15,7 @@ from stanza.models.common.doc import *
 logger = logging.getLogger('stanza')
 paths = default_paths.get_default_paths()
 
-def create_dictionary(lang, train_path, external_path):
+def create_dictionary(lang, train_path, external_path, dict_path):
     dict = {}
     word_list = set()
     pattern_th = re.compile(r"(?:[^\d\W]+)|\s")
@@ -94,7 +94,13 @@ def create_dictionary(lang, train_path, external_path):
                         word_list.add(word)
     if train_path==None and external_path==None:
         raise FileNotFoundError
-    return dict
+    if len(word_list)>0:
+        with open(dict_path, 'wb') as config_dictionary_file:
+            pickle.dump(dict, config_dictionary_file)
+        config_dictionary_file.close()
+        print("Succesfully generated dict file with total of ", len(word_list), " words.")
+
+    #return dict
 
 def load_dict(args):
 
