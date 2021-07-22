@@ -95,7 +95,7 @@ def create_dictionary(lang, train_path, external_path, dict_path):
     if train_path==None and external_path==None:
         raise FileNotFoundError
     if len(word_list)>0:
-        with open(dict_path, 'wb') as config_dictionary_file:
+        with open(dict_path, 'w') as config_dictionary_file:
             json.dump(dict, config_dictionary_file)
             #pickle.dump(dict, config_dictionary_file)
         config_dictionary_file.close()
