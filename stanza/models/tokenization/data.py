@@ -86,7 +86,7 @@ def load_sep_dict(self):
 
     return dict_tree
 class DataLoader:
-    def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False, dict_tree = None):
+    def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False, dict_tree ={}):
         self.args = args
         self.eval = evaluation
         #self.dict_tree = None if self.args["dict_feat"] == 0 else load_dict(self)
