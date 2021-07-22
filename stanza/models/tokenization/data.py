@@ -195,7 +195,7 @@ class DataLoader:
                 # check forward words formed from [i,i+1] and [i,i+2], etc found in dict
                 if (i + t) <= length-1 and found_prefix:
                     forward_word += para[i+t][0].lower()
-                    feat = self.dict_tree.get(forward_word,0)
+                    feat = 0 if self.dict_tree.get(forward_word,0) in (0,1) else 1
                     #feat = 1 if self.dict_tree.search(forward_word) else 0
                     #if feat != 1:
                     dict_forward_feats[t-1] = feat
@@ -207,7 +207,7 @@ class DataLoader:
             #for t in range(1, self.args['dict_feat']+1):
                 if (i - t) >= 0:
                     backward_word = para[i-t][0].lower() + backward_word
-                    feat = self.dict_tree.get(backward_word,0)
+                    feat = 0 if self.dict_tree.get(backward_word,0) in (0,1) else 1
 
                     #feat = 1 if self.dict_tree.search(backward_word) else 0
                     dict_backward_feats[t-1] = feat
