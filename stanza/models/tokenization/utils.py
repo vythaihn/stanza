@@ -130,7 +130,7 @@ def load_dict(args):
 
         create_dictionary(shortname, train_path, external_dict_path, dict_path)
 
-    with open(dict_path, 'rb') as config_dict_file_start:
+    with open(dict_path, 'r') as config_dict_file_start:
         dict = json.load(config_dict_file_start)
         #dict = pickle.load(config_dict_file_start)
 
