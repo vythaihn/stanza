@@ -11,7 +11,7 @@ import os
 import stanza.utils.default_paths as default_paths
 from .vocab import Vocab
 from stanza.models.tokenization.trie import Trie, create_dictionary, create_separabe_dict
-
+import json
 logger = logging.getLogger('stanza')
 paths = default_paths.get_default_paths()
 
@@ -89,7 +89,7 @@ class DataLoader:
         self.args = args
         self.eval = evaluation
         #self.dict_tree = None if self.args["dict_feat"] == 0 else load_dict(self)
-        self.dic_tree = dict_tree
+        self.dict_tree = dict_tree
         self.sep_dict = None if not self.args["sep_dict"] else load_sep_dict(self)
 
         # get input files
@@ -191,7 +191,7 @@ class DataLoader:
                 # check forward words formed from [i,i+1] and [i,i+2], etc found in dict
                 if (i + t) <= length-1 and found_prefix:
                     forward_word += para[i+t][0].lower()
-                    feat = self.dic_tree.get(forward_word,0)
+                    feat = self.dict_tree.get(forward_word,0)
                     #feat = 1 if self.dict_tree.search(forward_word) else 0
                     #if feat != 1:
                     dict_forward_feats[t-1] = feat
@@ -203,7 +203,7 @@ class DataLoader:
             #for t in range(1, self.args['dict_feat']+1):
                 if (i - t) >= 0:
                     backward_word = para[i-t][0].lower() + backward_word
-                    feat = self.dic_tree.get(forward_word,0)
+                    feat = self.dict_tree.get(forward_word,0)
 
                     #feat = 1 if self.dict_tree.search(backward_word) else 0
                     dict_forward_feats[t-1] = feat
