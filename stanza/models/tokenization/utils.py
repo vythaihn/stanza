@@ -96,7 +96,8 @@ def create_dictionary(lang, train_path, external_path, dict_path):
         raise FileNotFoundError
     if len(word_list)>0:
         with open(dict_path, 'wb') as config_dictionary_file:
-            pickle.dump(dict, config_dictionary_file)
+            json.dump(dict, config_dictionary_file)
+            #pickle.dump(dict, config_dictionary_file)
         config_dictionary_file.close()
         print("Succesfully generated dict file with total of ", len(word_list), " words.")
 
@@ -130,7 +131,8 @@ def load_dict(args):
         create_dictionary(shortname, train_path, external_dict_path, dict_path)
 
     with open(dict_path, 'rb') as config_dict_file_start:
-        dict = pickle.load(config_dict_file_start)
+        dict = json.load(config_dict_file_start)
+        #dict = pickle.load(config_dict_file_start)
 
     return dict
 
