@@ -132,7 +132,7 @@ def load_dict(args):
 
     with open(dict_path, 'r') as config_dict_file_start:
         dict = json.load(config_dict_file_start)
-        print("Load json file as dict", dict)
+        print("Load json file as dict", dict.get("北京大学经济学院",2)
         #dict = pickle.load(config_dict_file_start)
 
     return dict
