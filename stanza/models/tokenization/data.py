@@ -31,6 +31,7 @@ NUMERIC_RE = re.compile(r'^([\d]+[,\.]*)+$')
 WHITESPACE_RE = re.compile(r'\s')
 
 #This function is to load dictionary if dict feat is selected, or create one if not found.
+"""
 def load_dict(self):
 
     shortname = self.args["shorthand"]
@@ -59,7 +60,7 @@ def load_dict(self):
         dict_tree = pickle.load(config_dict_file_start)
 
     return dict_tree
-
+"""
 def load_sep_dict(self):
 
     shortname = self.args["shorthand"]
@@ -90,6 +91,7 @@ class DataLoader:
         self.eval = evaluation
         #self.dict_tree = None if self.args["dict_feat"] == 0 else load_dict(self)
         self.dict_tree = dict_tree
+        print(dict_tree)
         self.sep_dict = None if not self.args["sep_dict"] else load_sep_dict(self)
 
         # get input files
