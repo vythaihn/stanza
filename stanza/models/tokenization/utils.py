@@ -106,7 +106,7 @@ def create_dictionary(lang, train_path, external_path, dict_path):
 def load_dict(args):
 
     shortname = args["shorthand"]
-    dict_path = args['save_dir'] + "/%s.dict_json" % (shortname)
+    dict_path = args['save_dir'] + "/%s.json" % (shortname)
 
     #dict_path = "./stanza/models/tokenization/%s.dict" % (shortname)
 
