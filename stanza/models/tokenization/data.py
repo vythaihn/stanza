@@ -91,7 +91,8 @@ class DataLoader:
         self.eval = evaluation
         #self.dict_tree = None if self.args["dict_feat"] == 0 else load_dict(self)
         self.dict_tree = dict_tree
-        print(dict_tree)
+        print("Load json file as dict", dict.get("北京大学经济学院", 2))
+
         self.sep_dict = None if not self.args["sep_dict"] else load_sep_dict(self)
 
         # get input files
