@@ -207,7 +207,7 @@ class DataLoader:
             #for t in range(1, self.args['dict_feat']+1):
                 if (i - t) >= 0:
                     backward_word = para[i-t][0].lower() + backward_word
-                    feat = self.dict_tree.get(forward_word,0)
+                    feat = self.dict_tree.get(backward_word,0)
 
                     #feat = 1 if self.dict_tree.search(backward_word) else 0
                     dict_backward_feats[t] = feat
