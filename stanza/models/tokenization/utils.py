@@ -4,12 +4,129 @@ import json
 import numpy as np
 import re
 import logging
+import os
+from conllu import parse_incr
 
+import stanza.utils.default_paths as default_paths
 from stanza.models.common.utils import ud_scores, harmonic_mean
 from stanza.utils.conll import CoNLL
 from stanza.models.common.doc import *
 
 logger = logging.getLogger('stanza')
+paths = default_paths.get_default_paths()
+
+def create_dictionary(lang, train_path, external_path):
+    dict = {}
+    word_list = set()
+    pattern_th = re.compile(r"(?:[^\d\W]+)|\s")
+
+
+    if train_path!=None:
+        if not os.path.isfile(train_path):
+            raise FileNotFoundError
+
+        train_file = open(train_path, "r", encoding="utf-8")
+        for tokenlist in parse_incr(train_file):
+            for token in tokenlist:
+                word = token['form'].lower()
+                #check multiple_syllable word for vi
+                if lang == "vi_vlsp":
+                    if len(word.split(" "))>1 and any(map(str.isalpha, word)):
+                        #do not include the words that contain numbers.
+                        if not any(map(str.isdigit, word)):
+                            #tree.add(word)
+                            word_list.add(word)
+                elif lang == "th_orchid" or lang == "th_lst20":
+                    if len(word) > 1 and any(map(pattern_th.match, word)):
+                        if not any(map(str.isdigit, word)):
+                            #tree.add(word)
+                            word_list.add(word)
+                else:
+                    if len(word)>1 and any(map(str.isalpha, word)):
+                        if not any(map(str.isdigit, word)):
+                            if dict.get(word, 0) == 0:
+                                temp = ""
+                                dict[word] = 2
+                                for char in word[:-1]:
+                                    temp += char
+                                    if dict.get(temp, 0) == 0:
+                                        dict[temp] = 1
+                                    elif dict.get(temp, 0) == 2:
+                                        dict[temp] = 3
+                            elif dict.get(word, 0) == 1:
+                                dict[word] = 3
+                            word_list.add(word)
+        print("Added ", len(word_list), " words found in training set to dictionary.")
+    if external_path != None:
+        if not os.path.isfile(external_path):
+            raise FileNotFoundError
+
+        external_file = open(external_path, "r", encoding="utf-8")
+        lines = external_file.readlines()
+        for line in lines:
+            word = line.lower()
+            word = word.replace("\n","")
+            # check multiple_syllable word for vi
+            if lang == "vi_vlsp":
+                if len(word.split(" "))>1 and any(map(str.isalpha, word)):
+                    if not any(map(str.isdigit, word)):
+                        #tree.add(word)
+                        word_list.add(word)
+            elif lang == "th_orchid" or lang == "th_lst20":
+                if len(word)>1 and any(map(pattern_th.match, word)):
+                    if not any(map(str.isdigit, word)):
+                        #tree.add(word)
+                        word_list.add(word)
+            else:
+                if len(word) > 1 and any(map(str.isalpha, word)):
+                    if not any(map(str.isdigit, word)):
+                        if dict.get(word, 0) == 0:
+                            temp = ""
+                            dict[word] = 2
+                            for char in word[:-1]:
+                                temp += char
+                                if dict.get(temp, 0) == 0:
+                                    dict[temp] = 1
+                                elif dict.get(temp, 0) == 2:
+                                    dict[temp] = 3
+                        elif dict.get(word, 0) == 1:
+                            dict[word] = 3
+                        word_list.add(word)
+    if train_path==None and external_path==None:
+        raise FileNotFoundError
+    return dict
+
+def load_dict(args):
+
+    shortname = args["shorthand"]
+    dict_path = args['save_dir'] + "/%s.dict_json" % (shortname)
+
+    #dict_path = "./stanza/models/tokenization/%s.dict" % (shortname)
+
+    if not os.path.exists(dict_path):
+        logger.info("Dictionary file not found! Creating one right now...")
+
+        #creating a new dictionary file
+        tokenize_dir = paths["TOKENIZE_DATA_DIR"]
+        train_path = f"{tokenize_dir}/{shortname}.train.gold.conllu"
+        external_dict_path = f"{tokenize_dir}/{shortname}-externaldict.txt"
+        if not os.path.exists(external_dict_path):
+            logger.info("External dictionary not found!")
+            external_dict_path = None
+        if not os.path.exists(train_path):
+            logger.info("Training dataset does not exist, thus cannot create dictionary" % (shortname))
+            train_path = None
+
+        if train_path==None and external_dict_path==None:
+            logger.info("Cannot find or create any dictionary due to files not found! Dictionary feature is disabled.")
+            return None
+
+        create_dictionary(shortname, train_path, external_dict_path, dict_path)
+
+    with open(dict_path, 'rb') as config_dict_file_start:
+        dict = pickle.load(config_dict_file_start)
+
+    return dict
 
 def load_mwt_dict(filename):
     if filename is not None:

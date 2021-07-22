@@ -41,9 +41,7 @@ class Tokenizer(nn.Module):
 
     def forward(self, x, feats):
         emb = self.embeddings(x)
-
         emb = self.dropout(emb)
-
         emb = torch.cat([emb, feats], 2)
 
         inp, _ = self.rnn(emb)

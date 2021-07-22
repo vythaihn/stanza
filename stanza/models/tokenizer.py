@@ -17,7 +17,7 @@ import torch
 from stanza.models.common import utils
 from stanza.models.tokenization.trainer import Trainer
 from stanza.models.tokenization.data import DataLoader
-from stanza.models.tokenization.utils import load_mwt_dict, eval_model, output_predictions
+from stanza.models.tokenization.utils import load_mwt_dict, eval_model, output_predictions, load_dict
 from stanza.models import _training_logging
 
 logger = logging.getLogger('stanza')
@@ -106,12 +106,13 @@ def main(args=None):
 
 def train(args):
     mwt_dict = load_mwt_dict(args['mwt_json_file'])
+    dict_tree = None if args["dict_feat"] == 0 else load_dict(args)
 
     train_input_files = {
             'txt': args['txt_file'],
             'label': args['label_file']
             }
-    train_batches = DataLoader(args, input_files=train_input_files)
+    train_batches = DataLoader(args, input_files=train_input_files, dict_tree=dict_tree)
     vocab = train_batches.vocab
 
 

@@ -85,10 +85,11 @@ def load_sep_dict(self):
 
     return dict_tree
 class DataLoader:
-    def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False):
+    def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False, dict_tree = None):
         self.args = args
         self.eval = evaluation
-        self.dict_tree = None if self.args["dict_feat"] == 0 else load_dict(self)
+        #self.dict_tree = None if self.args["dict_feat"] == 0 else load_dict(self)
+        self.dic_tree = dict_tree
         self.sep_dict = None if not self.args["sep_dict"] else load_sep_dict(self)
 
         # get input files
@@ -181,28 +182,34 @@ class DataLoader:
         def extract_dict_feat(i):
             dict_forward_feats = [0 for i in range(self.args['dict_feat'])]
             dict_backward_feats = [0 for i in range(self.args['dict_feat'])]
-            forward_word = para[i][0]
-            backward_word = para[i][0]
+            forward_word = ""
+            backward_word = ""
+            #forward_word = para[i][0]
+            #backward_word = para[i][0]
             found_prefix = True
-            for t in range(1,self.args['dict_feat']+1):
+            for t in range(0,self.args['dict_feat']):
                 # check forward words formed from [i,i+1] and [i,i+2], etc found in dict
                 if (i + t) <= length-1 and found_prefix:
                     forward_word += para[i+t][0].lower()
-                    feat = 1 if self.dict_tree.search(forward_word) else 0
-                    if feat == 1:
-                        dict_forward_feats[t-1] = 1
+                    feat = self.dic_tree.get(forward_word,0)
+                    #feat = 1 if self.dict_tree.search(forward_word) else 0
+                    #if feat != 1:
+                    dict_forward_feats[t-1] = feat
                     #else check if that word is a prefix or not, if not then stop searching for forward word
-                    elif feat == 0:
-                        if not self.dict_tree.startsWith(forward_word):
-                            found_prefix = False
+                    if feat == 0:
+                        found_prefix = False
 
             # check backward words formed from [i,i-1] and [i,i-2], etc found in dict
             #for t in range(1, self.args['dict_feat']+1):
                 if (i - t) >= 0:
                     backward_word = para[i-t][0].lower() + backward_word
-                    feat = 1 if self.dict_tree.search(backward_word) else 0
-                    if feat == 1:
-                        dict_backward_feats[t-1] = 1
+                    feat = self.dic_tree.get(forward_word,0)
+
+                    #feat = 1 if self.dict_tree.search(backward_word) else 0
+                    dict_forward_feats[t-1] = feat
+
+                    #if feat == 1:
+                    #    dict_backward_feats[t-1] = 1
             return dict_forward_feats + dict_backward_feats
 
         def process_sentence(sent):
