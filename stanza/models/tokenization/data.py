@@ -200,7 +200,7 @@ class DataLoader:
                     #if feat != 1:
                     dict_forward_feats[t-1] = feat
                     #else check if that word is a prefix or not, if not then stop searching for forward word
-                    if feat == 0:
+                    if self.dict_tree.get(forward_word,0) == 0:
                     #if self.dict_tree.get(forward_word,0) == 0:
                         found_prefix = False
 
