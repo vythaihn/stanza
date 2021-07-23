@@ -98,6 +98,8 @@ def main(args=None):
     save_name = args['save_name'] if args['save_name'] else '{}_tokenizer.pt'.format(args['shorthand'])
     args['save_name'] = os.path.join(args['save_dir'], save_name)
     utils.ensure_dir(args['save_dir'])
+    args['dict_tree'] = None if args["dict_feat"] == 0 else load_dict(args)
+
 
     if args['mode'] == 'train':
         train(args)
@@ -106,13 +108,12 @@ def main(args=None):
 
 def train(args):
     mwt_dict = load_mwt_dict(args['mwt_json_file'])
-    dict_tree = None if args["dict_feat"] == 0 else load_dict(args)
 
     train_input_files = {
             'txt': args['txt_file'],
             'label': args['label_file']
             }
-    train_batches = DataLoader(args, input_files=train_input_files, dict_tree=dict_tree)
+    train_batches = DataLoader(args, input_files=train_input_files, dict_tree=args["dict_tree"])
     vocab = train_batches.vocab
 
 
@@ -123,7 +124,7 @@ def train(args):
             'txt': args['dev_txt_file'],
             'label': args['dev_label_file']
             }
-    dev_batches = DataLoader(args, input_files=dev_input_files, vocab=vocab, evaluation=True)
+    dev_batches = DataLoader(args, input_files=dev_input_files, vocab=vocab, evaluation=True,  dict_tree=args["dict_tree"])
 
     if args['use_mwt'] is None:
         args['use_mwt'] = train_batches.has_mwt()
@@ -196,7 +197,7 @@ def evaluate(args):
             'label': args['label_file']
             }
 
-    batches = DataLoader(args, input_files=eval_input_files, vocab=vocab, evaluation=True)
+    batches = DataLoader(args, input_files=eval_input_files, vocab=vocab, evaluation=True,  dict_tree=args["dict_tree"])
 
     oov_count, N, _, _ = output_predictions(args['conll_file'], trainer, batches, vocab, mwt_dict, args['max_seqlen'])
 
