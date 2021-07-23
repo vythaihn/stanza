@@ -188,17 +188,17 @@ class DataLoader:
             dict_backward_feats = [0 for i in range(self.args['dict_feat'])]
             forward_word = ""
             backward_word = ""
-            forward_word = para[i][0]
-            backward_word = para[i][0]
+            #forward_word = para[i][0]
+            #backward_word = para[i][0]
             found_prefix = True
-            for t in range(1,self.args['dict_feat']+1):
+            for t in range(0,self.args['dict_feat']):
                 # check forward words formed from [i,i+1] and [i,i+2], etc found in dict
                 if (i + t) <= length-1 and found_prefix:
                     forward_word += para[i+t][0].lower()
                     feat = self.dict_tree.get(forward_word,0)
                     #feat = 1 if self.dict_tree.search(forward_word) else 0
                     #if feat != 1:
-                    dict_forward_feats[t-1] = feat
+                    dict_forward_feats[t] = feat
                     #else check if that word is a prefix or not, if not then stop searching for forward word
                     if feat == 0:
                     #if self.dict_tree.get(forward_word,0) == 0:
@@ -211,7 +211,7 @@ class DataLoader:
                     feat = self.dict_tree.get(backward_word,0)
 
                     #feat = 1 if self.dict_tree.search(backward_word) else 0
-                    dict_backward_feats[t-1] = feat
+                    dict_backward_feats[t] = feat
 
                     #if feat == 1:
                     #    dict_backward_feats[t-1] = 1
@@ -385,7 +385,7 @@ class DataLoader:
                     if mask[i, j]:
                         raw_units[i][j] = '<UNK>'
 
-        """
+
         if self.args['dict_feat'] > 0 and feat_dropout > 0 and not self.eval:
             #dropout features vector at training time.
             mask_feat = np.random.random_sample(units.shape) < feat_dropout
@@ -394,8 +394,8 @@ class DataLoader:
                 for j in range(len(raw_units[i])):
                     if mask_feat[i,j]:
                         features[i,j,:] = 0
-        """
         
+
         units = torch.from_numpy(units)
         labels = torch.from_numpy(labels)
         features = torch.from_numpy(features)
