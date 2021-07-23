@@ -36,11 +36,11 @@ def create_dictionary(lang, train_path, external_path, dict_path):
                         if not any(map(str.isdigit, word)):
                             #tree.add(word)
                             word_list.add(word)
-                elif lang == "th_orchid" or lang == "th_lst20":
-                    if len(word) > 1 and any(map(pattern_th.match, word)):
-                        if not any(map(str.isdigit, word)):
-                            #tree.add(word)
-                            word_list.add(word)
+                #elif lang == "th_orchid" or lang == "th_lst20":
+                #    if len(word) > 1 and any(map(pattern_th.match, word)):
+                #        if not any(map(str.isdigit, word)):
+                #            #tree.add(word)
+                #            word_list.add(word)
                 else:
                     if len(word)>1 and any(map(str.isalpha, word)):
                         if not any(map(str.isdigit, word)):
@@ -72,11 +72,11 @@ def create_dictionary(lang, train_path, external_path, dict_path):
                     if not any(map(str.isdigit, word)):
                         #tree.add(word)
                         word_list.add(word)
-            elif lang == "th_orchid" or lang == "th_lst20":
-                if len(word)>1 and any(map(pattern_th.match, word)):
-                    if not any(map(str.isdigit, word)):
-                        #tree.add(word)
-                        word_list.add(word)
+            #elif lang == "th_orchid" or lang == "th_lst20":
+            #    if len(word)>1 and any(map(pattern_th.match, word)):
+            #        if not any(map(str.isdigit, word)):
+            #            #tree.add(word)
+            #            word_list.add(word)
             else:
                 if len(word) > 1 and any(map(str.isalpha, word)):
                     if not any(map(str.isdigit, word)):
