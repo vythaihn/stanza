@@ -385,7 +385,7 @@ class DataLoader:
                     if mask[i, j]:
                         raw_units[i][j] = '<UNK>'
 
-        """
+
         if self.args['dict_feat'] > 0 and feat_dropout > 0 and not self.eval:
             #dropout features vector at training time.
             mask_feat = np.random.random_sample(units.shape) < feat_dropout
@@ -394,7 +394,7 @@ class DataLoader:
                 for j in range(len(raw_units[i])):
                     if mask_feat[i,j]:
                         features[i,j,:] = 0
-        """
+
         units = torch.from_numpy(units)
         labels = torch.from_numpy(labels)
         features = torch.from_numpy(features)
