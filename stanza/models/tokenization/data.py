@@ -215,7 +215,7 @@ class DataLoader:
 
                     #if feat == 1:
                     #    dict_backward_feats[t-1] = 1
-            return dict_forward_feats + dict_backward_feats
+            return dict_forward_feats #+ dict_backward_feats
 
         def process_sentence(sent):
             return [self.vocab.unit2id(y[0]) for y in sent], [y[1] for y in sent], [y[2] for y in sent], [y[0] for y in sent]
