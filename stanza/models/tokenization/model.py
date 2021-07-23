@@ -37,7 +37,7 @@ class Tokenizer(nn.Module):
                 self.mwt_clf2 = nn.Linear(hidden_dim * 2, 1, bias=False)
 
         self.dropout = nn.Dropout(dropout)
-        self.dropout_feat = nn.Dropout(0.2)
+        self.dropout_feat = nn.Dropout(0.05)
 
         self.toknoise = nn.Dropout(self.args['tok_noise'])
 
