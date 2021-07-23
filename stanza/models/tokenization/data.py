@@ -188,8 +188,8 @@ class DataLoader:
             dict_backward_feats = [0 for i in range(self.args['dict_feat'])]
             forward_word = ""
             backward_word = ""
-            forward_word = para[i][0]
-            backward_word = para[i][0]
+            #forward_word = para[i][0]
+            #backward_word = para[i][0]
             found_prefix = True
             for t in range(0,self.args['dict_feat']):
                 # check forward words formed from [i,i+1] and [i,i+2], etc found in dict
