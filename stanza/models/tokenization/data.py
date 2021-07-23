@@ -211,7 +211,7 @@ class DataLoader:
                     feat = self.dict_tree.get(backward_word,0)
 
                     #feat = 1 if self.dict_tree.search(backward_word) else 0
-                    dict_backward_feats[t] = feat
+                    dict_backward_feats[t-1] = feat
 
                     #if feat == 1:
                     #    dict_backward_feats[t-1] = 1
