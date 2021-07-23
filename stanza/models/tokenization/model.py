@@ -37,11 +37,16 @@ class Tokenizer(nn.Module):
                 self.mwt_clf2 = nn.Linear(hidden_dim * 2, 1, bias=False)
 
         self.dropout = nn.Dropout(dropout)
+        self.dropout_feat = nn.Dropout(0.5)
+
         self.toknoise = nn.Dropout(self.args['tok_noise'])
 
     def forward(self, x, feats):
         emb = self.embeddings(x)
         emb = self.dropout(emb)
+        feats = self.dropout_feat(feats)
+
+
         emb = torch.cat([emb, feats], 2)
 
         inp, _ = self.rnn(emb)
