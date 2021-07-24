@@ -195,12 +195,12 @@ class DataLoader:
                 # check forward words formed from [i,i+1] and [i,i+2], etc found in dict
                 if (i + t) <= length-1 and found_prefix:
                     forward_word += para[i+t][0].lower()
-                    feat = 0 if self.dict_tree.get(forward_word,0) in (0,1) else 1
+                    feat = self.dict_tree.get(forward_word,0)
                     #feat = 1 if self.dict_tree.search(forward_word) else 0
                     #if feat != 1:
-                    dict_forward_feats[t-1] = feat
+                    dict_forward_feats[t-1] = 0 if feat in (0,1) else 1
                     #else check if that word is a prefix or not, if not then stop searching for forward word
-                    if self.dict_tree.get(forward_word,0) == 0:
+                    if feat == 0:
                     #if self.dict_tree.get(forward_word,0) == 0:
                         found_prefix = False
 

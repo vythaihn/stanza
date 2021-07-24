@@ -34,13 +34,18 @@ def create_dictionary(lang, train_path, external_path, dict_path):
                     if len(word.split(" "))>1 and any(map(str.isalpha, word)):
                         #do not include the words that contain numbers.
                         if not any(map(str.isdigit, word)):
-                            #tree.add(word)
+                            if dict.get(word, 0) == 0:
+                                temp = ""
+                                dict[word] = 2
+                                for char in word[:-1]:
+                                    temp += char
+                                    if dict.get(temp, 0) == 0:
+                                        dict[temp] = 1
+                                    elif dict.get(temp, 0) == 2:
+                                        dict[temp] = 3
+                            elif dict.get(word, 0) == 1:
+                                dict[word] = 3
                             word_list.add(word)
-                #elif lang == "th_orchid" or lang == "th_lst20":
-                #    if len(word) > 1 and any(map(pattern_th.match, word)):
-                #        if not any(map(str.isdigit, word)):
-                #            #tree.add(word)
-                #            word_list.add(word)
                 else:
                     if len(word)>1 and any(map(str.isalpha, word)):
                         if not any(map(str.isdigit, word)):
@@ -70,13 +75,18 @@ def create_dictionary(lang, train_path, external_path, dict_path):
             if lang == "vi_vlsp":
                 if len(word.split(" "))>1 and any(map(str.isalpha, word)):
                     if not any(map(str.isdigit, word)):
-                        #tree.add(word)
+                        if dict.get(word, 0) == 0:
+                            temp = ""
+                            dict[word] = 2
+                            for char in word[:-1]:
+                                temp += char
+                                if dict.get(temp, 0) == 0:
+                                    dict[temp] = 1
+                                elif dict.get(temp, 0) == 2:
+                                    dict[temp] = 3
+                        elif dict.get(word, 0) == 1:
+                            dict[word] = 3
                         word_list.add(word)
-            #elif lang == "th_orchid" or lang == "th_lst20":
-            #    if len(word)>1 and any(map(pattern_th.match, word)):
-            #        if not any(map(str.isdigit, word)):
-            #            #tree.add(word)
-            #            word_list.add(word)
             else:
                 if len(word) > 1 and any(map(str.isalpha, word)):
                     if not any(map(str.isdigit, word)):
