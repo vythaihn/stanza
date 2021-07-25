@@ -92,7 +92,6 @@ class DataLoader:
         #self.dict_tree = None if self.args["dict_feat"] == 0 else load_dict(self)
         self.dict_tree = dict_tree
 
-        self.sep_dict = None if not self.args["sep_dict"] else load_sep_dict(self)
 
         # get input files
         txt_file = input_files['txt']
@@ -234,9 +233,6 @@ class DataLoader:
                 f = 1 if i == 0 else 0
                 feats.append(f)
 
-            if self.sep_dict:
-                f = self.dict_tree.search(unit)
-                feats.append(f)
             #if dictionary feature is selected
             if self.args['dict_feat'] > 0:
                 dict_feats = extract_dict_feat(i)
