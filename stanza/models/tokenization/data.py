@@ -238,7 +238,7 @@ class DataLoader:
                 dict_feats = extract_dict_feat(i)
                 feats = feats + dict_feats
 
-            print(len(feats))
+            #print(len(feats))
             current += [(unit, label, feats)]
             if label1 == 2 or label1 == 4: # end of sentence
                 if len(current) <= self.args['max_seqlen']:
