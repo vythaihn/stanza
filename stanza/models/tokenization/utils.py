@@ -15,15 +15,19 @@ from stanza.models.common.doc import *
 logger = logging.getLogger('stanza')
 paths = default_paths.get_default_paths()
 
-def create_dictionary(lang, train_path, external_path, dict_path):
+def create_dictionary(lang, train_path, external_path):
+    """
+    This function is to create a new dictionary.
+    The dictionary will be created using two sources: training dataset and external set (if any).
+    The dictionary will include words and their prefixes as format: {WORD:state} where WORD can be complete word or prefixes and
+    states can be in (1,2,3) where 1 means prefixes only, 2 means complete word and 3 means that string being both prefix and word.
+    """
     dict = {}
     word_list = set()
-    pattern_th = re.compile(r"(?:[^\d\W]+)|\s")
-
 
     if train_path!=None:
         if not os.path.isfile(train_path):
-            raise FileNotFoundError
+            raise FileNotFoundError("Cannot open train set at %s" % train_path)
 
         train_file = open(train_path, "r", encoding="utf-8")
         for tokenlist in parse_incr(train_file):
@@ -62,9 +66,10 @@ def create_dictionary(lang, train_path, external_path, dict_path):
                                 dict[word] = 3
                             word_list.add(word)
         print("Added ", len(word_list), " words found in training set to dictionary.")
+    word_list = set()
     if external_path != None:
         if not os.path.isfile(external_path):
-            raise FileNotFoundError
+            raise FileNotFoundError("Cannot open external dictionary at %s" % external_path)
 
         external_file = open(external_path, "r", encoding="utf-8")
         lines = external_file.readlines()
@@ -102,50 +107,31 @@ def create_dictionary(lang, train_path, external_path, dict_path):
                         elif dict.get(word, 0) == 1:
                             dict[word] = 3
                         word_list.add(word)
-    if train_path==None and external_path==None:
-        raise FileNotFoundError
-    if len(word_list)>0:
-        with open(dict_path, 'w') as config_dictionary_file:
-            json.dump(dict, config_dictionary_file)
-            #pickle.dump(dict, config_dictionary_file)
-        config_dictionary_file.close()
-        print("Succesfully generated dict file with total of ", len(word_list), " words.")
-
-    #return dict
-
-def load_dict(args):
-
-    shortname = args["shorthand"]
-    dict_path = args['save_dir'] + "/%s.json" % (shortname)
-
-    #dict_path = "./stanza/models/tokenization/%s.dict" % (shortname)
-
-    if not os.path.exists(dict_path):
-        logger.info("Dictionary file not found! Creating one right now...")
-
-        #creating a new dictionary file
-        tokenize_dir = paths["TOKENIZE_DATA_DIR"]
-        train_path = f"{tokenize_dir}/{shortname}.train.gold.conllu"
-        external_dict_path = f"{tokenize_dir}/{shortname}-externaldict.txt"
-        if not os.path.exists(external_dict_path):
-            logger.info("External dictionary not found!")
-            external_dict_path = None
-        if not os.path.exists(train_path):
-            logger.info("Training dataset does not exist, thus cannot create dictionary" % (shortname))
-            train_path = None
-
-        if train_path==None and external_dict_path==None:
-            logger.info("Cannot find or create any dictionary due to files not found! Dictionary feature is disabled.")
-            return None
-
-        create_dictionary(shortname, train_path, external_dict_path, dict_path)
-
-    with open(dict_path, 'r') as config_dict_file_start:
-        dict = json.load(config_dict_file_start)
-        print("Load json file as dict", dict.get("北京大学经济学院",2))
-        #dict = pickle.load(config_dict_file_start)
+    print("Added ", len(word_list), " words found in external dict to dictionary.")
 
     return dict
+
+def load_dict(args):
+    """
+    This function is to create a new dictionary and load it to training.
+    The external dictionary is expected to be inside the training dataset dir with format of: SHORTNAME-externaldict.txt
+    For example, vi_vlsp-externaldict.txt
+    """
+    shortname = args["shorthand"]
+    tokenize_dir = paths["TOKENIZE_DATA_DIR"]
+    train_path = f"{tokenize_dir}/{shortname}.train.gold.conllu"
+    external_dict_path = f"{tokenize_dir}/{shortname}-externaldict.txt"
+    if not os.path.exists(external_dict_path):
+        logger.info("External dictionary not found!")
+        external_dict_path = None
+    if not os.path.exists(train_path):
+        logger.info("Training dataset does not exist, thus cannot create dictionary" % (shortname))
+        train_path = None
+    if train_path==None and external_dict_path==None:
+        raise FileNotFoundError("Cannot find training set / external dictionary at %s and %s" % (train_path, external_dict_path))
+
+    return create_dictionary(shortname, train_path, external_dict_path)
+
 
 def load_mwt_dict(filename):
     if filename is not None:

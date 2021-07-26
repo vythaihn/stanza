@@ -1,17 +1,12 @@
 from bisect import bisect_right
 from copy import copy
-import json
 import numpy as np
 import random
 import logging
 import re
 import torch
-import pickle
-import os
 import stanza.utils.default_paths as default_paths
 from .vocab import Vocab
-from stanza.models.tokenization.trie import Trie, create_dictionary, create_separabe_dict
-import json
 logger = logging.getLogger('stanza')
 paths = default_paths.get_default_paths()
 
@@ -123,6 +118,7 @@ class DataLoader:
         composite_func = lambda x: [f(x) for f in funcs]
 
         length = len(para)
+
         #This function is to extract dictionary features for each character
         def extract_dict_feat(idx):
             dict_forward_feats = [0 for i in range(self.args['dict_feat'])]
@@ -143,6 +139,7 @@ class DataLoader:
                     if feat == 0:
                         found_prefix = False
             # backward check, similar to forward but looking backward instead.
+                #TODO: not sure how to optimize the backward check
                 if (idx - t) >= 0:
                     backward_word = para[idx-t][0].lower() + backward_word
                     feat = 0 if self.dict.get(backward_word,0) in (0,1) else 1
