@@ -186,6 +186,7 @@ def evaluate(args):
     use_cuda = args['cuda'] and not args['cpu']
     trainer = Trainer(model_file=args['load_name'] or args['save_name'], use_cuda=use_cuda)
     loaded_args, vocab = trainer.args, trainer.vocab
+
     dict = trainer.dict
 
     for k in loaded_args:
@@ -197,7 +198,7 @@ def evaluate(args):
             'label': args['label_file']
             }
 
-    batches = DataLoader(args, input_files=eval_input_files, vocab=vocab, evaluation=True,  dict_tree=dict)
+    batches = DataLoader(args, input_files=eval_input_files, vocab=vocab, evaluation=True,  dict=dict)
 
     oov_count, N, _, _ = output_predictions(args['conll_file'], trainer, batches, vocab, mwt_dict, args['max_seqlen'])
 
