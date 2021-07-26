@@ -30,67 +30,11 @@ NEWLINE_WHITESPACE_RE = re.compile(r'\n\s*\n')
 NUMERIC_RE = re.compile(r'^([\d]+[,\.]*)+$')
 WHITESPACE_RE = re.compile(r'\s')
 
-#This function is to load dictionary if dict feat is selected, or create one if not found.
-"""
-def load_dict(self):
-
-    shortname = self.args["shorthand"]
-    dict_path = "./stanza/models/tokenization/%s.dict" % (shortname)
-
-    if not os.path.exists(dict_path):
-        #creating a new dictionary file
-        tokenize_dir = paths["TOKENIZE_DATA_DIR"]
-        train_path = f"{tokenize_dir}/{shortname}.train.gold.conllu"
-        external_dict_path = f"{tokenize_dir}/{shortname}-externaldict.txt"
-        if not os.path.exists(external_dict_path):
-            logger.info("External dictionary not found!")
-            external_dict_path = None
-        if not os.path.exists(train_path):
-            logger.info("Training dataset does not exist, thus cannot create dictionary" % (shortname))
-            train_path = None
-        # TODO: Still need to figure out how to inform back to the training that dict feat
-        # is disabled and the dimension of feats needs to be reduced.
-        if train_path==None and external_dict_path==None:
-            logger.info("Cannot find or create any dictionary due to files not found! Dictionary feature is disabled.")
-            return None
-
-        create_dictionary(shortname, train_path, external_dict_path, dict_path)
-
-    with open(dict_path, 'rb') as config_dict_file_start:
-        dict_tree = pickle.load(config_dict_file_start)
-
-    return dict_tree
-"""
-def load_sep_dict(self):
-
-    shortname = self.args["shorthand"]
-    dict_path = "./stanza/models/tokenization/%s.dict" % (shortname + "_sep")
-
-    if not os.path.exists(dict_path):
-        #creating a new dictionary file
-        tokenize_dir = paths["TOKENIZE_DATA_DIR"]
-        train_path = f"{tokenize_dir}/{shortname}.train.gold.conllu"
-        if not os.path.exists(train_path):
-            logger.info("Training dataset does not exist, thus cannot create dictionary" % (shortname))
-            train_path = None
-        # TODO: Still need to figure out how to inform back to the training that dict feat
-        # is disabled and the dimension of feats needs to be reduced.
-        if train_path==None:
-            logger.info("Cannot find or create any dictionary due to files not found! Dictionary feature is disabled.")
-            return None
-
-        create_separabe_dict(shortname, train_path, dict_path)
-
-    with open(dict_path, 'rb') as config_dict_file_start:
-        dict_tree = pickle.load(config_dict_file_start)
-
-    return dict_tree
 class DataLoader:
-    def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False, dict_tree ={}):
+    def __init__(self, args, input_files={'txt': None, 'label': None}, input_text=None, input_data=None, vocab=None, evaluation=False, dict={}):
         self.args = args
         self.eval = evaluation
-        #self.dict_tree = None if self.args["dict_feat"] == 0 else load_dict(self)
-        self.dict_tree = dict_tree
+        self.dict = dict
 
 
         # get input files
@@ -180,40 +124,30 @@ class DataLoader:
 
         length = len(para)
         #This function is to extract dictionary features for each character
-        def extract_dict_feat(i):
+        def extract_dict_feat(idx):
             dict_forward_feats = [0 for i in range(self.args['dict_feat'])]
             dict_backward_feats = [0 for i in range(self.args['dict_feat'])]
-            #forward_word = ""
-            #backward_word = ""
-            forward_word = para[i][0]
-            backward_word = para[i][0]
+            forward_word = para[idx][0]
+            backward_word = para[idx][0]
             found_prefix = True
             for t in range(1,self.args['dict_feat']+1):
-                # check forward words formed from [i,i+1] and [i,i+2], etc found in dict
-                if (i + t) <= length-1 and found_prefix:
-                    forward_word += para[i+t][0].lower()
-                    feat = self.dict_tree.get(forward_word,0)
-                    #feat = 1 if self.dict_tree.search(forward_word) else 0
-                    #if feat != 1:
+                # concatenate each character and check if words found in dict not, stop if prefix not found
+                #check if idx+t is out of bound and if the prefix is already not found
+                if (idx + t) <= length-1 and found_prefix:
+                    forward_word += para[idx+t][0].lower()
+                    #check in json file if the word is present as prefix or word or None.
+                    feat = self.dict.get(forward_word,0)
+                    #if the return value is not 2 or 3 then the checking word is not a valid word in dict.
                     dict_forward_feats[t-1] = 0 if feat in (0,1) else 1
-                    #else check if that word is a prefix or not, if not then stop searching for forward word
+                    #if the dict return 0 means no prefixes found, thus, stop looking for forward.
                     if feat == 0:
-                    #if self.dict_tree.get(forward_word,0) == 0:
                         found_prefix = False
-
-            # check backward words formed from [i,i-1] and [i,i-2], etc found in dict
-            #for t in range(1, self.args['dict_feat']+1):
-                if (i - t) >= 0:
-                    backward_word = para[i-t][0].lower() + backward_word
-                    feat = 0 if self.dict_tree.get(backward_word,0) in (0,1) else 1
-
-                    #feat = self.dict_tree.get(backward_word,0)
-
-                    #feat = 1 if self.dict_tree.search(backward_word) else 0
+            # backward check, similar to forward but looking backward instead.
+                if (idx - t) >= 0:
+                    backward_word = para[idx-t][0].lower() + backward_word
+                    feat = 0 if self.dict.get(backward_word,0) in (0,1) else 1
                     dict_backward_feats[t-1] = feat
 
-                    #if feat == 1:
-                    #    dict_backward_feats[t-1] = 1
             return dict_forward_feats + dict_backward_feats
 
         def process_sentence(sent):
@@ -238,13 +172,11 @@ class DataLoader:
                 dict_feats = extract_dict_feat(i)
                 feats = feats + dict_feats
 
-            #print(len(feats))
             current += [(unit, label, feats)]
             if label1 == 2 or label1 == 4: # end of sentence
                 if len(current) <= self.args['max_seqlen']:
                     # get rid of sentences that are too long during training of the tokenizer
                     res.append(process_sentence(current))
-                #print(current)
                 current = []
                 
         if len(current) > 0:
@@ -261,7 +193,7 @@ class DataLoader:
             random.shuffle(para)
         self.init_sent_ids()
 
-    def next(self, eval_offsets=None, unit_dropout=0.0, old_batch=None, feat_dropout=0.0):
+    def next(self, eval_offsets=None, unit_dropout=0.0, old_batch=None, feat_unit_dropout=0.0):
         ''' Get a batch of converted and padded PyTorch data from preprocessed raw text for training/prediction. '''
         feat_size = len(self.sentences[0][0][2][0])
         unkid = self.vocab.unit2id('<UNK>')
@@ -383,9 +315,9 @@ class DataLoader:
                         raw_units[i][j] = '<UNK>'
 
 
-        if self.args['dict_feat'] > 0 and feat_dropout > 0 and not self.eval:
+        if self.args['dict_feat'] > 0 and feat_unit_dropout > 0 and not self.eval:
             #dropout features vector at training time.
-            mask_feat = np.random.random_sample(units.shape) < feat_dropout
+            mask_feat = np.random.random_sample(units.shape) < feat_unit_dropout
             mask_feat[units == padid] = 0
             for i in range(len(raw_units)):
                 for j in range(len(raw_units[i])):

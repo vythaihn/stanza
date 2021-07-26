@@ -50,7 +50,6 @@ def parse_args(args=None):
     parser.add_argument('--conv_res', type=str, default=None, help="Convolutional residual layers for the RNN")
     parser.add_argument('--rnn_layers', type=int, default=1, help="Layers of RNN in the tokenizer")
     parser.add_argument('--dict_feat', type=int, default=0, help="Number of dictionary features, usually the length of longest word in a dict")
-    parser.add_argument('--sep_dict', action='store_true', default = False, help="Using separable syllable features.")
 
     parser.add_argument('--max_grad_norm', type=float, default=1.0, help="Maximum gradient norm to clip to")
     parser.add_argument('--anneal', type=float, default=.999, help="Anneal the learning rate by this amount when dev performance deteriorate")
@@ -58,7 +57,8 @@ def parse_args(args=None):
     parser.add_argument('--lr0', type=float, default=2e-3, help="Initial learning rate")
     parser.add_argument('--dropout', type=float, default=0.33, help="Dropout probability")
     parser.add_argument('--unit_dropout', type=float, default=0.33, help="Unit dropout probability")
-    parser.add_argument('--feat_dropout', type=float, default=0.33, help="Features dropout probability")
+    parser.add_argument('--feat_dropout', type=float, default=0.05, help="Features dropout probability for each element in feature vector")
+    parser.add_argument('--feat_unit_dropout', type=float, default=0.33, help="The whole feature of units dropout probability")
     parser.add_argument('--tok_noise', type=float, default=0.02, help="Probability to induce noise to the input of the higher RNN")
     parser.add_argument('--sent_drop_prob', type=float, default=0.2, help="Probability to drop sentences at the end of batches during training uniformly at random.  Idea is to fake paragraph endings.")
     parser.add_argument('--weight_decay', type=float, default=0.0, help="Weight decay")
@@ -98,10 +98,10 @@ def main(args=None):
     save_name = args['save_name'] if args['save_name'] else '{}_tokenizer.pt'.format(args['shorthand'])
     args['save_name'] = os.path.join(args['save_dir'], save_name)
     utils.ensure_dir(args['save_dir'])
-    args['dict_tree'] = None if args["dict_feat"] == 0 else load_dict(args)
-
 
     if args['mode'] == 'train':
+        #only create a new dict when training
+        args['dict_tree'] = None if args["dict_feat"] == 0 else load_dict(args)
         train(args)
     else:
         evaluate(args)
@@ -116,21 +116,19 @@ def train(args):
     train_batches = DataLoader(args, input_files=train_input_files, dict_tree=args["dict_tree"])
     vocab = train_batches.vocab
 
-
-
     args['vocab_size'] = len(vocab)
 
     dev_input_files = {
             'txt': args['dev_txt_file'],
             'label': args['dev_label_file']
             }
-    dev_batches = DataLoader(args, input_files=dev_input_files, vocab=vocab, evaluation=True,  dict_tree=args["dict_tree"])
+    dev_batches = DataLoader(args, input_files=dev_input_files, vocab=vocab, evaluation=True,  dict=args["dict_tree"])
 
     if args['use_mwt'] is None:
         args['use_mwt'] = train_batches.has_mwt()
         logger.info("Found {}mwts in the training data.  Setting use_mwt to {}".format(("" if args['use_mwt'] else "no "), args['use_mwt']))
 
-    trainer = Trainer(args=args, vocab=vocab, use_cuda=args['cuda'])
+    trainer = Trainer(args=args, vocab=vocab, dict=args['dict_tree'], use_cuda=args['cuda'])
 
     if args['load_name'] is not None:
         load_name = os.path.join(args['save_dir'], args['load_name'])
@@ -146,7 +144,7 @@ def train(args):
     best_dev_step = -1
 
     for step in range(1, steps+1):
-        batch = train_batches.next(unit_dropout=args['unit_dropout'], feat_dropout = args['feat_dropout'])
+        batch = train_batches.next(unit_dropout=args['unit_dropout'], feat_unit_dropout = args['feat_unit_dropout'])
 
         loss = trainer.update(batch)
         if step % args['report_steps'] == 0:
@@ -188,6 +186,8 @@ def evaluate(args):
     use_cuda = args['cuda'] and not args['cpu']
     trainer = Trainer(model_file=args['load_name'] or args['save_name'], use_cuda=use_cuda)
     loaded_args, vocab = trainer.args, trainer.vocab
+    dict = trainer.dict
+
     for k in loaded_args:
         if not k.endswith('_file') and k not in ['cuda', 'mode', 'save_dir', 'load_name', 'save_name']:
             args[k] = loaded_args[k]
@@ -197,7 +197,7 @@ def evaluate(args):
             'label': args['label_file']
             }
 
-    batches = DataLoader(args, input_files=eval_input_files, vocab=vocab, evaluation=True,  dict_tree=args["dict_tree"])
+    batches = DataLoader(args, input_files=eval_input_files, vocab=vocab, evaluation=True,  dict_tree=dict)
 
     oov_count, N, _, _ = output_predictions(args['conll_file'], trainer, batches, vocab, mwt_dict, args['max_seqlen'])
 

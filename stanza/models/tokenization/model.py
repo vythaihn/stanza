@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 
 class Tokenizer(nn.Module):
-    def __init__(self, args, nchars, emb_dim, hidden_dim, dropout):
+    def __init__(self, args, nchars, emb_dim, hidden_dim, dropout, feat_dropout):
         super().__init__()
 
         self.args = args
@@ -37,7 +37,7 @@ class Tokenizer(nn.Module):
                 self.mwt_clf2 = nn.Linear(hidden_dim * 2, 1, bias=False)
 
         self.dropout = nn.Dropout(dropout)
-        self.dropout_feat = nn.Dropout(0.05)
+        self.dropout_feat = nn.Dropout(feat_dropout)
 
         self.toknoise = nn.Dropout(self.args['tok_noise'])
 
