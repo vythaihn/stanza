@@ -113,7 +113,7 @@ def train(args):
             'txt': args['txt_file'],
             'label': args['label_file']
             }
-    train_batches = DataLoader(args, input_files=train_input_files, dict_tree=args["dict_tree"])
+    train_batches = DataLoader(args, input_files=train_input_files, dict=args["dict_tree"])
     vocab = train_batches.vocab
 
     args['vocab_size'] = len(vocab)
