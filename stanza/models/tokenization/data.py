@@ -53,7 +53,7 @@ class DataLoader:
                 labels = '\n\n'.join(['0' * len(pt.rstrip()) for pt in NEWLINE_WHITESPACE_RE.split(text)])
 
             skip_newline = args.get('skip_newline', False)
-            self.data = [[(WHITESPACE_RE.sub(' ', char), int(label)) # substitute special whitespaces
+            self.data = [[(WHITESPACE_RE.sub(' ', char), label) # substitute special whitespaces
                           for char, label in zip(pt.rstrip(), pc) if not (skip_newline and char == '\n')] # check if newline needs to be eaten
                          for pt, pc in zip(NEWLINE_WHITESPACE_RE.split(text), NEWLINE_WHITESPACE_RE.split(labels)) if len(pt.rstrip()) > 0]
 
@@ -75,10 +75,10 @@ class DataLoader:
         # presumably this only needs to be called either 0 or 1 times,
         # 1 when training and 0 any other time, so no effort is put
         # into caching the result
-        for sentence in self.data:
-            for word in sentence:
-                if word[1] > 2:
-                    return True
+        #for sentence in self.data:
+        #    for word in sentence:
+        #        if word[1] > 2:
+        #            return True
         return False
 
     def init_vocab(self):
@@ -297,6 +297,7 @@ class DataLoader:
         raw_units = []
         for i, (offset, pair) in enumerate(offsets_pairs):
             u_, l_, f_, r_ = strings_starting(pair, offset=offset, pad_len=pad_len)
+            print(u_, l_, labels, units)
             units[i, :len(u_)] = u_
             labels[i, :len(l_)] = l_
             features[i, :len(f_)] = f_

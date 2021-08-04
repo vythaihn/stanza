@@ -392,6 +392,7 @@ def eval_model(args, trainer, batches, vocab, mwt_dict):
 
         lastp = -1; lastg = -1
         tp = 0; fp = 0; fn = 0
+        """
         for i, (p, g) in enumerate(zip(pred, gold)):
             if p == g > 0 and lastp == lastg:
                 lastp = i
@@ -409,11 +410,18 @@ def eval_model(args, trainer, batches, vocab, mwt_dict):
             elif g > 0:
                 lastg = i
                 fn += 1
-
+        """
+        total = 0
+        for i, (p, g) in enumerate(zip(pred, gold)):
+            if p==g:
+                tp+=1
+            total+=1
+        
         if tp == 0:
             return 0
         else:
-            return 2 * tp / (2 * tp + fp + fn)
+            return tp/total
+            #return 2 * tp / (2 * tp + fp + fn)
 
     f1tok = f1(all_preds, labels, {0:0, 1:1, 2:1, 3:1, 4:1})
     f1sent = f1(all_preds, labels, {0:0, 1:0, 2:1, 3:0, 4:1})
