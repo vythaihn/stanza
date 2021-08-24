@@ -217,6 +217,9 @@ def train(args):
                 for batch in dev_batch:
                     preds = trainer.predict(batch)
                     dev_preds += preds
+                    #print(len())
+                #print(len(dev_preds))
+                #print(len(dev_gold_tags))
                 _, _, dev_score = scorer.score_by_entity(dev_preds, dev_gold_tags)
 
                 train_loss = train_loss / args['eval_interval'] # avg loss per batch

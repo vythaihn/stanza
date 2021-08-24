@@ -24,7 +24,8 @@ class NERTagger(nn.Module):
             setattr(self, name, module)
 
         # input layers
-        input_size = 0
+        input_size = 768
+        """
         if self.args['word_emb_dim'] > 0:
             self.word_emb = nn.Embedding(len(self.vocab['word']), self.args['word_emb_dim'], PAD_ID)
             # load pretrained embeddings if specified
@@ -33,7 +34,8 @@ class NERTagger(nn.Module):
             if not self.args.get('emb_finetune', True):
                 self.word_emb.weight.detach_()
             input_size += self.args['word_emb_dim']
-
+            #input_size = 768
+        """
         if self.args['char'] and self.args['char_emb_dim'] > 0:
             if self.args['charlm']:
                 if args['charlm_forward_file'] is None or not os.path.exists(args['charlm_forward_file']):
@@ -88,11 +90,20 @@ class NERTagger(nn.Module):
             return pack_padded_sequence(x, sentlens, batch_first=True)
         
         inputs = []
+        #print("START")
+        #print(word.size())
+        #print("END")
         if self.args['word_emb_dim'] > 0:
-            word_emb = self.word_emb(word)
-            word_emb = pack(word_emb)
+            
+            #word_emb = self.word_emb(word)
+            #print(word_emb)
+            #print(word_emb.size())
+            #word_emb = pack(word_emb)
+            word_emb = pack(torch.tensor(word))
+        
             inputs += [word_emb]
-
+        #print(len(inputs))
+        #print(inputs[0].size())
         def pad(x):
             return pad_packed_sequence(PackedSequence(x, word_emb.batch_sizes), batch_first=True)[0]
 
@@ -132,6 +143,10 @@ class NERTagger(nn.Module):
         lstm_outputs = self.lockeddrop(lstm_outputs)
         lstm_outputs = pack(lstm_outputs).data
         logits = pad(self.tag_clf(lstm_outputs)).contiguous()
+        #print(logits.size())
+        #print(word_mask.size())
+        #print(tags.size())
+        
         loss, trans = self.crit(logits, word_mask, tags)
         
         return loss, logits, trans

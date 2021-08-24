@@ -1,7 +1,10 @@
 import random
 import logging
 import torch
-
+import sys
+#from itertools.groupby
+from pympler import asizeof
+from transformers import AutoModel, AutoTokenizer
 from stanza.models.common.data import map_to_ids, get_long_tensor, get_float_tensor, sort_all
 from stanza.models.common.vocab import PAD_ID, VOCAB_PREFIX
 from stanza.models.pos.vocab import CharVocab, WordVocab
@@ -9,6 +12,8 @@ from stanza.models.ner.vocab import TagVocab, MultiVocab
 from stanza.models.common.doc import *
 from stanza.models.ner.utils import process_tags
 
+phobert = AutoModel.from_pretrained("vinai/phobert-base").to(torch.device("cuda:0"))
+tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base", use_fast=False)
 logger = logging.getLogger('stanza')
 
 class DataLoader:
@@ -21,8 +26,48 @@ class DataLoader:
         self.preprocess_tags = preprocess_tags
 
         data = self.load_doc(self.doc)
+        new_data = []
+        for sent in data:
+            new_sent = []
+            for word in sent:
+                if word[0] in (".", "…","...", "?", "!", ";"):
+                    
+                    if new_sent:
+                        new_sent.append(word)
+                        new_data.append(new_sent)
+                        new_sent = []
+                    else:
+                        new_sent.append(word)
+                        
+                else:
+                    new_sent.append(word)
+            if new_sent:
+                new_data.append(new_sent)
+                new_sent = []
+                
+        data = new_data
+        print(max([len(sent) for sent in data]))
+        print([ sent for sent in data if len(sent) > 256])
+        #print(data)
+            #i = (list(g) for _, g in groupby(sentence, key='.'.__ne__))
+            #print([a + b for a, b in zip_longest(i, i, fillvalue=[])])
+
+
+        count = 0
+        """
+        for sent in data:
+            if len(sent) > 150:
+                for i in range(len(sent)//150+1):
+                    new_sent = sent[i*150:i*150+150]
+                    data.append(new_sent)
+                count += 1
+        """
+        print("total of over length sentence: ", count)
+        data = [sent for sent in data if len(sent)<=150]
+        
         self.tags = [[w[1] for w in sent] for sent in data]
 
+        
         # handle vocab
         self.pretrain = pretrain
         if vocab is None:
@@ -76,11 +121,69 @@ class DataLoader:
             char_case = lambda x: x.lower()
         else:
             char_case = lambda x: x
+        tokenized_sents = []
+        print("start checking bert emb...")
+        print("length of data: ", len(data))
+
+        list_tokenized = []
         for sent in data:
-            processed_sent = [vocab['word'].map([case(w[0]) for w in sent])]
-            processed_sent += [[vocab['char'].map([char_case(x) for x in w[0]]) for w in sent]]
+            
+            tokenized = [word[0].replace("\xa0","_") for word in sent]
+            #print(tokenized)
+            sentence = ' '.join(tokenized)
+            tokenized = tokenizer.tokenize(sentence)
+            
+            list_tokenized.append(tokenized)
+            sent_ids = tokenizer.convert_tokens_to_ids(tokenized)
+            tokenized_sent = [0] + sent_ids + [2]
+            if len(tokenized)>256:
+                print(len(tokenized))
+                print("oops", tokenized)
+            
+            tokenized_sents.append(torch.tensor(tokenized_sent).detach())
+            #processed_sent = [vocab['word'].map([case(w[0]) for w in sent])]
+            processed_sent = [[vocab['char'].map([char_case(x) for x in w[0]]) for w in sent]]
             processed_sent += [vocab['tag'].map([w[1] for w in sent])]
             processed.append(processed_sent)
+        print("done loading bert emb!")
+
+        size = len(tokenized_sents)
+        tokenized_sents_padded = torch.nn.utils.rnn.pad_sequence(tokenized_sents,batch_first=True,padding_value=1)
+        features = []
+        #end_list = [  len(sent)-2 for sent in tokenized_sents]
+        print(tokenized_sents_padded.size())
+        #call bert
+    
+        for i in range(size//128+1):
+            with torch.no_grad():
+                feature = phobert(tokenized_sents_padded[128*i:128*i+128].to(torch.device("cuda:0")), output_hidden_states=True)
+            features += torch.tensor(feature[2][-2]).detach().cpu()
+
+            print("done ", (i+1)*128)
+            print(asizeof.asizeof(features))
+            #print(len(features))
+        print(len(processed))
+        #print(len(tokenized))
+        
+        for idx, sent in enumerate(processed):
+            #new_sent=[features[idx][idx2 +1][:5].numpy() for idx2, i in enumerate(list_tokenized[idx]) if (idx2 <= len(list_tokenized[idx])-2 and not list_tokenized[idx][idx2+1].endswith("@@")) or (idx2==len(list_tokenized[idx])-1)]
+            new_sent=[features[idx][idx2 +1].numpy() for idx2, i in enumerate(list_tokenized[idx]) if not (list_tokenized[idx][idx2].endswith("@@"))]
+            #print(len(new_sent))
+            #print(features[idx][1:15].size())
+            
+            processed[idx] = [new_sent] + processed[idx]
+            #processed[idx] = [features[idx][1:3]] + processed[idx]
+            #print(processed[idx])
+            if len(processed[idx][0]) != len(processed[idx][1]):
+                print(len(processed[idx][0]), len(processed[idx][1]))
+                print(processed[idx])
+                print(list_tokenized[idx])
+            assert len(processed[idx][0]) == len(processed[idx][1])
+            #processed[idx] = [features[idx][1:1+end_list[idx]]] + processed[idx]
+        del list_tokenized
+        del tokenized_sents
+        del tokenized_sents_padded
+        del features
         return processed
 
     def __len__(self):
@@ -95,6 +198,11 @@ class DataLoader:
         batch = self.data[key]
         batch_size = len(batch)
         batch = list(zip(*batch))
+        #print("START")
+        #print(batch)
+        #print(batch_size)
+        #print("END")
+        #print(len(batch))
         assert len(batch) == 3 # words: List[List[int]], chars: List[List[List[int]]], tags: List[List[int]]
 
         # sort sentences by lens for easy RNN operations
@@ -116,8 +224,10 @@ class DataLoader:
         wordlens = [len(x) for x in batch_words]
 
         # convert to tensors
-        words = get_long_tensor(batch[0], batch_size)
-        words_mask = torch.eq(words, PAD_ID)
+        words = get_float_tensor(batch[0], batch_size)
+        #print(words)
+        words_mask = torch.sum(torch.abs(words),2) == 0.0
+        #words_mask = torch.eq(words, PAD_ID)
         wordchars = get_long_tensor(batch_words, len(wordlens))
         wordchars_mask = torch.eq(wordchars, PAD_ID)
         chars_forward = get_long_tensor(chars_forward, batch_size, pad_id=self.vocab['char'].unit2id(' '))
