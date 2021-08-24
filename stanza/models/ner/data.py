@@ -21,6 +21,25 @@ class DataLoader:
         self.preprocess_tags = preprocess_tags
 
         data = self.load_doc(self.doc)
+        new_data = []
+        for sent in data:
+            new_sent = []
+            for word in sent:
+                if word[0] in (".", "…","...", "?", "!", ";"):
+            
+                    if new_sent:
+                        new_sent.append(word)
+                        new_data.append(new_sent)
+                        new_sent = []
+                    else:
+                        new_sent.append(word)                       
+                else:
+                    new_sent.append(word)
+            if new_sent:
+                new_data.append(new_sent)
+                new_sent = []
+                        
+        data = new_data
         self.tags = [[w[1] for w in sent] for sent in data]
 
         # handle vocab
