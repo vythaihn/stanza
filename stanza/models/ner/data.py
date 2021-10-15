@@ -3,8 +3,9 @@ import logging
 import torch
 import sys
 #from itertools.groupby
+import math
 from pympler import asizeof
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer, XLMRobertaModel, XLMRobertaTokenizerFast
 from stanza.models.common.data import map_to_ids, get_long_tensor, get_float_tensor, sort_all
 from stanza.models.common.vocab import PAD_ID, VOCAB_PREFIX
 from stanza.models.pos.vocab import CharVocab, WordVocab
@@ -12,8 +13,13 @@ from stanza.models.ner.vocab import TagVocab, MultiVocab
 from stanza.models.common.doc import *
 from stanza.models.ner.utils import process_tags
 
+#phobert = XLMRobertaModel.from_pretrained("xlm-roberta-base").to(torch.device("cuda:0"))
+#tokenizer = XLMRobertaTokenizerFast.from_pretrained('xlm-roberta-base')
 phobert = AutoModel.from_pretrained("vinai/phobert-base").to(torch.device("cuda:0"))
-tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base", use_fast=False)
+tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base", use_fast=True)
+
+#phobert = AutoModel.from_pretrained("xlm-roberta-base").to(torch.device("cuda:0"))
+#tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base", use_fast=False)
 logger = logging.getLogger('stanza')
 
 class DataLoader:
@@ -30,8 +36,9 @@ class DataLoader:
         for sent in data:
             new_sent = []
             for word in sent:
+                word = (word[0].replace("‑","‐"), word[1])
                 if word[0] in (".", "…","...", "?", "!", ";"):
-                    
+                    word = (word[0].replace("…","..."),word[1])
                     if new_sent:
                         new_sent.append(word)
                         new_data.append(new_sent)
@@ -45,6 +52,7 @@ class DataLoader:
                 new_data.append(new_sent)
                 new_sent = []
                 
+        #data = new_data[:16000]
         data = new_data
         print(max([len(sent) for sent in data]))
         print([ sent for sent in data if len(sent) > 256])
@@ -125,10 +133,10 @@ class DataLoader:
         print("start checking bert emb...")
         print("length of data: ", len(data))
 
-        list_tokenized = []
+        #list_tokenized = []
         for sent in data:
-            
-            tokenized = [word[0].replace("\xa0","_") for word in sent]
+            """
+            tokenized = [word[0].replace("\xa0"," ") for word in sent]
             #print(tokenized)
             sentence = ' '.join(tokenized)
             tokenized = tokenizer.tokenize(sentence)
@@ -136,53 +144,142 @@ class DataLoader:
             list_tokenized.append(tokenized)
             sent_ids = tokenizer.convert_tokens_to_ids(tokenized)
             tokenized_sent = [0] + sent_ids + [2]
-            if len(tokenized)>256:
-                print(len(tokenized))
-                print("oops", tokenized)
+            """
+            tokenized_sent = [word[0].replace("\xa0"," ") for word in sent]
             
-            tokenized_sents.append(torch.tensor(tokenized_sent).detach())
+            if len(tokenized_sent)>256:
+                print(len(tokenized_sent))
+                print("oops", tokenized_sent)
+
+            tokenized_sents.append(tokenized_sent)
+            #tokenized_sents.append(torch.tensor(tokenized_sent).detach())
             #processed_sent = [vocab['word'].map([case(w[0]) for w in sent])]
             processed_sent = [[vocab['char'].map([char_case(x) for x in w[0]]) for w in sent]]
             processed_sent += [vocab['tag'].map([w[1] for w in sent])]
             processed.append(processed_sent)
-        print("done loading bert emb!")
 
+            #print("done loading bert emb!")
+
+
+        """
         size = len(tokenized_sents)
         tokenized_sents_padded = torch.nn.utils.rnn.pad_sequence(tokenized_sents,batch_first=True,padding_value=1)
+        """
+        size = len(tokenized_sents)
         features = []
-        #end_list = [  len(sent)-2 for sent in tokenized_sents]
-        print(tokenized_sents_padded.size())
+                
+        #print(tokenized_sents_padded.size())
         #call bert
-    
-        for i in range(size//128+1):
+        tokenized = tokenizer(tokenized_sents, padding="longest", is_split_into_words=True, return_offsets_mapping=False, return_attention_mask=False )
+        
+        
+        for i in range(int(math.ceil(size/128))):
             with torch.no_grad():
-                feature = phobert(tokenized_sents_padded[128*i:128*i+128].to(torch.device("cuda:0")), output_hidden_states=True)
-            features += torch.tensor(feature[2][-2]).detach().cpu()
+                #tokenized = tokenizer(tokenized_sents[128*i:128*i+128], padding="longest", is_split_into_words=True, return_offsets_mapping=True)
+                #word_ids += 
+                feature = phobert(torch.tensor(tokenized['input_ids'][128*i:128*i+128]).to(torch.device("cuda:0")), output_hidden_states=True)
+                #feature = phobert(tokenized['input_ids'].to(torch.device("cuda:0")), output_hidden_states=True)
 
+                
+            #features += torch.tensor(feature[2][-4]+feature[2][-3]+feature[2][-2]+feature[2][-1]).detach().cpu()
+            features += torch.tensor(feature[2][-2]).detach().cpu()
+            del feature
+            
             print("done ", (i+1)*128)
             print(asizeof.asizeof(features))
             #print(len(features))
         print(len(processed))
         #print(len(tokenized))
-        
+
+        print("Length of features", len(features))
+        assert len(features)==size
+        assert len(features)==len(processed)
         for idx, sent in enumerate(processed):
-            #new_sent=[features[idx][idx2 +1][:5].numpy() for idx2, i in enumerate(list_tokenized[idx]) if (idx2 <= len(list_tokenized[idx])-2 and not list_tokenized[idx][idx2+1].endswith("@@")) or (idx2==len(list_tokenized[idx])-1)]
-            new_sent=[features[idx][idx2 +1].numpy() for idx2, i in enumerate(list_tokenized[idx]) if not (list_tokenized[idx][idx2].endswith("@@"))]
+            #new_sent=[features[idx][idx2 +1].numpy() for idx2, i in enumerate(list_tokenized[idx]) if (idx2 > 0  and not list_tokenized[idx][idx2-1].endswith("@@")) or (idx2==0)]
+            #new_sent=[features[idx][idx2 +1].numpy() for idx2, i in enumerate(list_tokenized[idx]) if not (list_tokenized[idx][idx2].endswith("@@"))]
+            new_sent = []
+            """
+            test_token = ""
+            current = 0
+            print(data[idx])
+            print(list_tokenized[idx])
+            for idx2, i in enumerate(list_tokenized[idx]):
+                test_token = test_token+i.replace("▁"," ")
+                if data[idx][current][0].replace("\xa0"," ") == test_token.strip():
+                    new_sent.append(features[idx][idx2+1].numpy())
+                    
+                    #test_token = ""
+                    print(test_token,"====" , data[idx][current][0])
+                    current += 1
+                    test_token = ""
+            """
+            #new_sent = []
+
+            temp = 0
+            temp_vec = 0
+            previous = 0
+            
+            for idx2, i in enumerate(tokenized.word_ids(batch_index=idx)):
+                
+                if idx2>0 and i!=None:
+                    if i!=previous:
+                        #if temp!= 0:
+                        new_sent.append(temp_vec/temp)
+                        temp_vec = features[idx][idx2].numpy()
+                        temp = 1
+                        previous = i
+                    elif i==previous:
+                        temp_vec += features[idx][idx2].numpy()
+                        temp+=1
+                if idx2>0 and i==None:
+                    new_sent.append(temp_vec/temp)
+                    break
+                """
+                if idx2>0:
+                    if i!= previous:
+                        new_sent.append(features[idx][idx2-1].numpy())
+                        previous = i
+                    if i==None:
+                        break
+                """
+            processed[idx] = [new_sent]+processed[idx]
+            
+                    
+            """
+            temp = 0
+            temp_vec = 0
+            for idx2, i in enumerate(list_tokenized[idx]):
+                temp += 1
+                temp_vec += features[idx][idx2+1].numpy()
+                
+                if not (list_tokenized[idx][idx2].endswith("@@")):
+                    #temp += 1
+                    #temp_vec += features[idx][idx2+1].numpy()
+                #else:
+                    #if (temp != 0):
+                    new_sent.append(temp_vec/temp)
+                    temp_vec = 0
+                    temp = 0
+                    #else:
+                    #    new_sent.append(features[idx][idx2+1].numpy())
+                        
+                    #new_sent.append(features[idx][idx2+1].numpy())
             #print(len(new_sent))
             #print(features[idx][1:15].size())
             
             processed[idx] = [new_sent] + processed[idx]
+            """
             #processed[idx] = [features[idx][1:3]] + processed[idx]
             #print(processed[idx])
             if len(processed[idx][0]) != len(processed[idx][1]):
                 print(len(processed[idx][0]), len(processed[idx][1]))
-                print(processed[idx])
+                #print(processed[idx])
                 print(list_tokenized[idx])
             assert len(processed[idx][0]) == len(processed[idx][1])
             #processed[idx] = [features[idx][1:1+end_list[idx]]] + processed[idx]
-        del list_tokenized
+        #del list_tokenized
         del tokenized_sents
-        del tokenized_sents_padded
+        del tokenized
         del features
         return processed
 
