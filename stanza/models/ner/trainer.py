@@ -18,16 +18,16 @@ logger = logging.getLogger('stanza')
 def unpack_batch(batch, use_cuda):
     """ Unpack a batch from the data loader. """
     if use_cuda:
-        inputs = [b.cuda() if b is not None else None for b in batch[:6]]
+        inputs = [b.cuda() if b is not None else None for b in batch[:7]]
     else:
-        inputs = batch[:6]
-    orig_idx = batch[6]
-    word_orig_idx = batch[7]
-    char_orig_idx = batch[8]
-    sentlens = batch[9]
-    wordlens = batch[10]
-    charlens = batch[11]
-    charoffsets = batch[12]
+        inputs = batch[:7]
+    orig_idx = batch[7]
+    word_orig_idx = batch[8]
+    char_orig_idx = batch[9]
+    sentlens = batch[10]
+    wordlens = batch[11]
+    charlens = batch[12]
+    charoffsets = batch[13]
     return inputs, orig_idx, word_orig_idx, char_orig_idx, sentlens, wordlens, charlens, charoffsets
 
 def fix_singleton_tags(tags):
@@ -72,14 +72,14 @@ class Trainer(BaseTrainer):
 
     def update(self, batch, eval=False):
         inputs, orig_idx, word_orig_idx, char_orig_idx, sentlens, wordlens, charlens, charoffsets = unpack_batch(batch, self.use_cuda)
-        word, word_mask, wordchars, wordchars_mask, chars, tags = inputs
+        static_words, word, word_mask, wordchars, wordchars_mask, chars, tags = inputs
 
         if eval:
             self.model.eval()
         else:
             self.model.train()
             self.optimizer.zero_grad()
-        loss, _, _ = self.model(word, word_mask, wordchars, wordchars_mask, tags, word_orig_idx, sentlens, wordlens, chars, charoffsets, charlens, char_orig_idx)
+        loss, _, _ = self.model(static_words, word, word_mask, wordchars, wordchars_mask, tags, word_orig_idx, sentlens, wordlens, chars, charoffsets, charlens, char_orig_idx)
         loss_val = loss.data.item()
         if eval:
             return loss_val
@@ -91,11 +91,11 @@ class Trainer(BaseTrainer):
 
     def predict(self, batch, unsort=True):
         inputs, orig_idx, word_orig_idx, char_orig_idx, sentlens, wordlens, charlens, charoffsets = unpack_batch(batch, self.use_cuda)
-        word, word_mask, wordchars, wordchars_mask, chars, tags = inputs
+        static_words, word, word_mask, wordchars, wordchars_mask, chars, tags = inputs
 
         self.model.eval()
         batch_size = word.size(0)
-        _, logits, trans = self.model(word, word_mask, wordchars, wordchars_mask, tags, word_orig_idx, sentlens, wordlens, chars, charoffsets, charlens, char_orig_idx)
+        _, logits, trans = self.model(static_words, word, word_mask, wordchars, wordchars_mask, tags, word_orig_idx, sentlens, wordlens, chars, charoffsets, charlens, char_orig_idx)
 
         # decode
         trans = trans.data.cpu().numpy()

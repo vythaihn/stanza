@@ -155,6 +155,7 @@ class DataLoader:
             #processed_sent = [vocab['word'].map([case(w[0]) for w in sent])]
             processed_sent = [[vocab['char'].map([char_case(x) for x in w[0]]) for w in sent]]
             processed_sent += [vocab['tag'].map([w[1] for w in sent])]
+            processed_sent += [vocab['word'].map([case(w[0]] for w in sent)]
             processed.append(processed_sent)
 
             #print("done loading bert emb!")
@@ -223,7 +224,7 @@ class DataLoader:
         #print(batch_size)
         #print("END")
         #print(len(batch))
-        assert len(batch) == 3 # words: List[List[int]], chars: List[List[List[int]]], tags: List[List[int]]
+        assert len(batch) == 4 # words: List[List[int]], chars: List[List[List[int]]], tags: List[List[int]]
 
         # sort sentences by lens for easy RNN operations
         sentlens = [len(x) for x in batch[0]]
@@ -255,8 +256,9 @@ class DataLoader:
         chars = torch.cat([chars_forward.unsqueeze(0), chars_backward.unsqueeze(0)]) # padded forward and backward char idx
         charoffsets = [charoffsets_forward, charoffsets_backward] # idx for forward and backward lm to get word representation
         tags = get_long_tensor(batch[2], batch_size)
-
-        return words, words_mask, wordchars, wordchars_mask, chars, tags, orig_idx, word_orig_idx, char_orig_idx, sentlens, wordlens, charlens, charoffsets
+        static_words = get_long_tensor(batch[3], batch_size)
+                               
+        return static_words, words, words_mask, wordchars, wordchars_mask, chars, tags, orig_idx, word_orig_idx, char_orig_idx, sentlens, wordlens, charlens, charoffsets
 
     def __iter__(self):
         for i in range(self.__len__()):

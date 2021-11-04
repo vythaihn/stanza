@@ -24,8 +24,8 @@ class NERTagger(nn.Module):
             setattr(self, name, module)
 
         # input layers
-        input_size = 768
-        """
+        #input_size = 768
+        
         if self.args['word_emb_dim'] > 0:
             self.word_emb = nn.Embedding(len(self.vocab['word']), self.args['word_emb_dim'], PAD_ID)
             # load pretrained embeddings if specified
@@ -34,8 +34,8 @@ class NERTagger(nn.Module):
             if not self.args.get('emb_finetune', True):
                 self.word_emb.weight.detach_()
             input_size += self.args['word_emb_dim']
-            #input_size = 768
-        """
+            input_size += 768
+        
         if self.args['char'] and self.args['char_emb_dim'] > 0:
             if self.args['charlm']:
                 if args['charlm_forward_file'] is None or not os.path.exists(args['charlm_forward_file']):
@@ -84,7 +84,7 @@ class NERTagger(nn.Module):
             "Input embedding matrix must match size: {} x {}, found {}".format(vocab_size, dim, emb_matrix.size())
         self.word_emb.weight.data.copy_(emb_matrix)
 
-    def forward(self, word, word_mask, wordchars, wordchars_mask, tags, word_orig_idx, sentlens, wordlens, chars, charoffsets, charlens, char_orig_idx):
+    def forward(self,static_words,  word, word_mask, wordchars, wordchars_mask, tags, word_orig_idx, sentlens, wordlens, chars, charoffsets, charlens, char_orig_idx):
         
         def pack(x):
             return pack_padded_sequence(x, sentlens, batch_first=True)
@@ -94,12 +94,15 @@ class NERTagger(nn.Module):
         #print(word.size())
         #print("END")
         if self.args['word_emb_dim'] > 0:
+            word_emb = self.word_emb(static_words)
+            word_emb = pack(word_emb + torch.tensor(word))
             
             #word_emb = self.word_emb(word)
             #print(word_emb)
             #print(word_emb.size())
             #word_emb = pack(word_emb)
-            word_emb = pack(torch.tensor(word))
+            
+            #word_emb = pack(torch.tensor(word))
         
             inputs += [word_emb]
         #print(len(inputs))
