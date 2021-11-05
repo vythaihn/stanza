@@ -25,7 +25,7 @@ class NERTagger(nn.Module):
 
         # input layers
         #input_size = 768
-        
+        input_size = 0
         if self.args['word_emb_dim'] > 0:
             self.word_emb = nn.Embedding(len(self.vocab['word']), self.args['word_emb_dim'], PAD_ID)
             # load pretrained embeddings if specified
@@ -95,7 +95,9 @@ class NERTagger(nn.Module):
         #print("END")
         if self.args['word_emb_dim'] > 0:
             word_emb = self.word_emb(static_words)
-            word_emb = pack(word_emb + torch.tensor(word))
+            word_emb = pack(torch.cat((word_emb, torch.tensor(word)),2))
+            #print(word_emb.size())
+            #print(torch.tensor(word).size())
             
             #word_emb = self.word_emb(word)
             #print(word_emb)

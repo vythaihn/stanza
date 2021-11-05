@@ -155,7 +155,7 @@ class DataLoader:
             #processed_sent = [vocab['word'].map([case(w[0]) for w in sent])]
             processed_sent = [[vocab['char'].map([char_case(x) for x in w[0]]) for w in sent]]
             processed_sent += [vocab['tag'].map([w[1] for w in sent])]
-            processed_sent += [vocab['word'].map([case(w[0]] for w in sent)]
+            processed_sent += [vocab['word'].map([case(w[0]) for w in sent])]
             processed.append(processed_sent)
 
             #print("done loading bert emb!")
