@@ -5,7 +5,8 @@
 *.conllu
 *.lem
 *.toklabels
-
+corenlp/
+thai/
 data/
 stanza_test/
 saved_models/
