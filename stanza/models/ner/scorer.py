@@ -20,7 +20,11 @@ def score_by_entity(pred_tag_sequences, gold_tag_sequences, verbose=True):
     
     Returns:
         Precision, recall and F1 scores.
+
     """
+    if(len(gold_tag_sequences)!= len(pred_tag_sequences)):
+        print(gold_tag_sequences)
+        print(pred_tag_sequences)
     assert(len(gold_tag_sequences) == len(pred_tag_sequences)), \
         "Number of predicted tag sequences does not match gold sequences."
     

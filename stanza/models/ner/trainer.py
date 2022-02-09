@@ -18,8 +18,11 @@ logger = logging.getLogger('stanza')
 
 def unpack_batch(batch, use_cuda):
     """ Unpack a batch from the data loader. """
+    #xxprint(batch)
+    
     if use_cuda:
-        inputs = [b.cuda() if b is not None else None for b in batch[:6]]
+        inputs = [batch[0],batch[1]]
+        inputs += [b.cuda() if b is not None else None for b in batch[2:6]]
     else:
         inputs = batch[:6]
     orig_idx = batch[6]
@@ -41,6 +44,8 @@ def fix_singleton_tags(tags):
             (idx == len(new_tags) - 1 or
              (new_tags[idx+1] != "I-" + tag[2:] and new_tags[idx+1] != "E-" + tag[2:]))):
             new_tags[idx] = "S-" + tag[2:]
+    #print("fix")
+    #print(new_tags)
     return new_tags
 
 class Trainer(BaseTrainer):
@@ -95,9 +100,14 @@ class Trainer(BaseTrainer):
         word, word_mask, wordchars, wordchars_mask, chars, tags = inputs
 
         self.model.eval()
-        batch_size = word.size(0)
+        #what is this for? 
+        #batch_size = word.size(0)
         _, logits, trans = self.model(word, word_mask, wordchars, wordchars_mask, tags, word_orig_idx, sentlens, wordlens, chars, charoffsets, charlens, char_orig_idx)
 
+        copy_tags = tags
+        
+        #print(len(tags))
+        #print(tags)
         # decode
         trans = trans.data.cpu().numpy()
         scores = logits.data.cpu().numpy()
@@ -109,6 +119,20 @@ class Trainer(BaseTrainer):
             tags = fix_singleton_tags(tags)
             tag_seqs += [tags]
 
+        """
+        print(len(tag_seqs))
+        print(len(tags))
+        print(tags)
+        assert(len(tag_seqs)==len(copy_tags))
+        for i in range(len(copy_tags)):
+            if(copy_tags[i].size(0)!=len(tag_seqs[i])):
+                print(copy_tags[i], tag_seqs[i])
+            #assert(len(tags)
+                #break
+        """
+                
+        #print(tag_seqs)
+        #print(tags)
         if unsort:
             tag_seqs = utils.unsort(tag_seqs, orig_idx)
         return tag_seqs
