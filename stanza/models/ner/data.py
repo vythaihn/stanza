@@ -11,7 +11,10 @@ from stanza.models.common.doc import *
 from stanza.models.ner.utils import process_tags
 
 #tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base", use_fast=True)
-tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
+#tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo-ner-dane")
+#tokenizer = AutoTokenizer.from_pretrained("flax-community/roberta-base-danish")
+tokenizer = AutoTokenizer.from_pretrained('bert-base-multilingual-cased')
+
 logger = logging.getLogger('stanza')
 
 class DataLoader:
@@ -26,13 +29,15 @@ class DataLoader:
         data = self.load_doc(self.doc)
         new_data = []
         self.tags = []
+
+        #eliminate all the sentences that are too long for bert model
         for sent in data:
-            #check if the max tokenized length is less than maximum (256 for vi)
+            #check if the max tokenized length is less than maximum (256 for vi) and replace nbs with space
             tokenized = [word[0].replace("\xa0","_") for word in sent]
             #concatenate to a sentence
             sentence = ' '.join(tokenized)
             
-            #tokenize using AutoTokenizer PhoBERT
+            #tokenize using AutoTokenizer BERT
             tokenized = tokenizer.tokenize(sentence)
             
             #convert tokens to ids
@@ -44,13 +49,11 @@ class DataLoader:
             if len(tokenized_sent) > tokenizer.model_max_length:
                 continue
             new_data.append(sent)
-            self.tags.append( [w[1] for w in sent])
-            
+            self.tags.append([w[1] for w in sent])
             #remove case() because it's not necceasary for bert
             #processed_sent = [[w[0] for w in sent]]
-
-         #remove because of the above for loop   
-
+         
+        
         #self.tags = [[w[1] for w in sent] for sent in data]
         data = new_data
         # handle vocab

@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence, pack_sequence, PackedSequence
 from stanza.models.common.data import map_to_ids, get_long_tensor, get_float_tensor, sort_all
-from transformers import AutoModel, AutoTokenizer, XLMRobertaModel, XLMRobertaTokenizerFast, AutoModelForPreTraining
+from transformers import AutoModel, AutoTokenizer, XLMRobertaModel, XLMRobertaTokenizerFast, AutoModelForPreTraining, AutoModelForMaskedLM
 
 from stanza.models.common.packed_lstm import PackedLSTM
 from stanza.models.common.dropout import WordDropout, LockedDropout
@@ -16,22 +16,27 @@ from stanza.models.common.char_model import CharacterModel, CharacterLanguageMod
 from stanza.models.common.crf import CRFLoss
 from stanza.models.common.vocab import PAD_ID
 logger = logging.getLogger('stanza')
-
+BERT_EMBEDS = 768
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class NERTagger(nn.Module):
     def __init__(self, args, vocab, emb_matrix=None):
         super().__init__()
-
         self.vocab = vocab
         self.args = args
         self.unsaved_modules = []
-        #self.model = AutoModel.from_pretrained("vinai/phobert-base").to(torch.device("cuda:0"))
-         
+
+        """
+        #self.model = AutoModel.from_pretrained("vinai/phobert-base").to(torch.device("cuda:0"))         
         #self.tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base", use_fast=True)
-        self.model = AutoModelForPreTraining.from_pretrained("Maltehb/danish-bert-botxo")
-        self.tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
-        def add_unsaved_module(name, module):
+        #self.model = AutoModelForPreTraining.from_pretrained("Maltehb/danish-bert-botxo-ner-dane")
+        #self.tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo-ner-dane")
+        #self.model = AutoModel.from_pretrained("flax-community/roberta-base-danish")
+        #self.tokenizer = AutoModelForMaskedLM.from_pretrained("flax-community/roberta-base-danish")
+        """
+        self.tokenizer = AutoTokenizer.from_pretrained('bert-base-multilingual-cased')
+        self.model = AutoModel.from_pretrained("bert-base-multilingual-cased")
+        def add_unsaved_module(name, module):    
             self.unsaved_modules += [name]
             setattr(self, name, module)
 
@@ -45,7 +50,7 @@ class NERTagger(nn.Module):
             if not self.args.get('emb_finetune', True):
                 self.word_emb.weight.detach_()
             #input_size += self.args['word_emb_dim']
-            input_size += 768
+            input_size += BERT_EMBEDS
 
         if self.args['char'] and self.args['char_emb_dim'] > 0:
             if self.args['charlm']:
@@ -101,30 +106,16 @@ class NERTagger(nn.Module):
             return pack_padded_sequence(x, sentlens, batch_first=True)
         
         inputs = []
-        #extract bert embedding for word
-        
+        #extract bert embedding for word        
         #processed = self.extract_phobert_embeddings(self.tokenizer, self.model, word, device)
         processed = self.extract_bert_embeddings(self.tokenizer, self.model, word, device)
         words = get_float_tensor(processed, len(processed))
-
-        #print("length of tokenzied words ", words[0].size())
-        #print("length of tags ", tags[0].size())
-        #print(words[0].size(0))
-        #print(tags[0].size(0))
         assert(words[0].size(0)==tags[0].size(0))
-        #print(words)
         word = words.cuda()
         word_mask = torch.sum(torch.abs(word),2) == 0.0
         word_mask.cuda()
-        #print(word)
-        #print(word.size())
-        #print(word_mask.size())
-        #print(tags.size())
         if self.args['word_emb_dim'] > 0:
-            #word_emb = self.word_emb(words)
             word_emb = pack(torch.tensor(word))
-            #print(word_emb)
-            
             inputs += [word_emb]
 
         def pad(x):
@@ -175,6 +166,7 @@ class NERTagger(nn.Module):
         Extract transformer embeddings using a generic roberta extraction
         data: list of list of string (the text tokens)
         """
+        #add add_prefix_space = True for RoBerTa-- error if not
         tokenized = tokenizer(data, padding="longest", is_split_into_words=True, return_offsets_mapping=False, return_attention_mask=False)
         list_offsets = [[None] * (len(sentence)+2) for sentence in data]
         for idx in range(len(data)):
